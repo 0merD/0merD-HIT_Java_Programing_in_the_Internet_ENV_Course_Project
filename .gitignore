@@ -23,7 +23,7 @@
 # The user's specific workspace, shelf files, and HTTP client requests
 # that you already had are good to ignore.
 /shelf/
-/workspace.xml
+/.idea/workspace.xml
 /httpRequests/
 /mavenHomeManager.xml
 /dataSources/
