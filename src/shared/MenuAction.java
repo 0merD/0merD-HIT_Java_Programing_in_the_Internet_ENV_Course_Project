@@ -1,4 +1,4 @@
-package client.utilities;
+package shared;
 
 @FunctionalInterface
 public interface MenuAction {
