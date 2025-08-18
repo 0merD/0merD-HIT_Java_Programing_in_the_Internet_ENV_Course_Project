@@ -1,9 +1,11 @@
 package shared;
 
-public class CustomerVIP implements CustomerInterface {
+public class CustomerVIP extends CustomerAbstract {
 
-    @Override
-    public void buy() {
 
+    public CustomerVIP(int id, String firstName, String lastName, String email, String phoneNumber, Enum<ClientType> clientType) {
+        super(id, firstName, lastName, email, phoneNumber, clientType);
     }
+
+
 }
