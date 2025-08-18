@@ -1,17 +1,17 @@
 [
   {
-    "username": "alice",
-    "password": "1234",
+    "id": "9012345678",
+    "password": "helloworld",
     "userType": "Admin"
   },
   {
-    "username": "bob",
-    "password": "5678",
+    "id": "123456789",
+    "password": "abc",
     "userType": "ShiftManager"
   },
   {
-    "username": "bob",
-    "password": "abcd",
+    "id": "666777888",
+    "password": "stupid",
     "userType": "BasicWorker"
   }
 ]
