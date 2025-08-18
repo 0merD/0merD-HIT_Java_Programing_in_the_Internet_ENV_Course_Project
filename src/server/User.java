@@ -3,9 +3,7 @@ package server;
 import shared.UserType;
 
 public abstract class User {
-    private static int nextUserId = 1;
-    private final int USER_ID;
-    private String username;
+    private String id;
     private String password;
     private String email;
     private String phoneNumber;
@@ -14,10 +12,9 @@ public abstract class User {
     private UserType userType;
 
     // Constructor
-    public User(String username, String password, String email, String phoneNumber,
+    public User(String id, String password, String email, String phoneNumber,
                 String accountNumber, int branchNumber, UserType userType) {
-        this.USER_ID = nextUserId++;
-        this.username = username;
+        this.id = id;
         this.password = password;
         this.email = email;
         this.phoneNumber = phoneNumber;
@@ -27,8 +24,8 @@ public abstract class User {
     }
 
     // Getters and setters
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }

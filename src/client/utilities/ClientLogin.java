@@ -1,9 +1,6 @@
 package client.utilities;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -19,6 +16,7 @@ public class ClientLogin {
             String workerId = "";
             String forbiddenChars = "[^0-9]";
 
+            // Get worker ID with validation
             while (true) {
                 System.out.print("Enter your Worker ID (9 digits): ");
                 workerId = scanner.nextLine().trim();
@@ -40,22 +38,42 @@ public class ClientLogin {
                 break;
             }
 
-            out.println(workerId);
+            // Get password
+            System.out.print("Enter your password: ");
+            String password = scanner.nextLine().trim();
 
+            // Send worker ID and password to server
+            out.println(workerId);
+            out.println(password);
+
+            // Read response from server
             String response = in.readLine();
             if (response == null) {
                 System.out.println("No response from server.");
                 return;
             }
 
+            System.out.println("Server response: " + response); // Debug line
+
             String[] parts = response.split(",");
             boolean success = Boolean.parseBoolean(parts[0]);
 
             if (!success) {
-                System.out.println("Login failed. Invalid worker ID.");
+                System.out.println("Login failed. Invalid worker ID or password.");
             } else {
-                String role = parts[1];
+                String role = parts.length > 1 ? parts[1] : "Unknown";
                 System.out.println("Login successful! Your role is: " + role);
+
+                // Optional: Continue with authenticated session
+                System.out.println("You can now send messages to the server. Type 'quit' to exit.");
+                String message;
+                while (!(message = scanner.nextLine()).equals("quit")) {
+                    out.println(message);
+                    String serverResponse = in.readLine();
+                    if (serverResponse != null) {
+                        System.out.println("Server: " + serverResponse);
+                    }
+                }
             }
 
         } catch (UnknownHostException e) {
