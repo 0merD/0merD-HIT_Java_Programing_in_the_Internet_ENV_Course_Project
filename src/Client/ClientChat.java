@@ -1,43 +1,56 @@
-package Client;
+package client;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Date;
 
 public class ClientChat {
-    public static void main(String[] args){
-    Socket socket = null;
-    DataInputStream fromNetInputStream; //for reading data from server
-    DataInputStream consoleInput; //for receiving data from user through console
-    PrintStream toNetOutputStream; //for sending data to server
-    String line = "";
+    public static void main(String[] args) {
+        Socket socket = null;
+        BufferedReader fromNetInputStream;   // for reading data from server
+        BufferedReader consoleInput;         // for receiving data from user through console
+        PrintStream toNetOutputStream;       // for sending data to server
 
-    try {
-        socket = new Socket("localhost",7000); //connect to the server at IP, port (localhost means 127.0.0.1, loopback)
-        System.out.println(new Date() + " ---> Connected to server at " + socket.getLocalAddress() + ":" + socket.getLocalPort());
-        fromNetInputStream = new DataInputStream(socket.getInputStream()); //input/output objects derived from socket data
-        toNetOutputStream = new PrintStream(socket.getOutputStream()); //input/output objects derived from socket data
-        consoleInput = new DataInputStream(System.in);
-
-        System.out.println(new Date() + " ---> Received from server: "
-            + fromNetInputStream.readLine()); //receive message from server
-    while (!line.equals("goodbye")){ //get input from client until "goodbye" is entered
-        System.out.println("Enter line: ");
-        line = consoleInput.readLine(); //get line from console.input
-        toNetOutputStream.println(line); // send text to server
-        System.out.println(new Date() + " ---> Received from server: "
-            + fromNetInputStream.readLine()); //receive text from server
-        }
-    } catch (Exception e) { System.err.println(e);//
-    } finally { //always runs, even with errors
         try {
+            socket = new Socket("localhost", 7000); // connect to server
+            System.out.println(new Date() + " ---> Connected to server at " +
+                    socket.getInetAddress() + ":" + socket.getPort());
+
+            fromNetInputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            toNetOutputStream = new PrintStream(socket.getOutputStream());
+            consoleInput = new BufferedReader(new InputStreamReader(System.in));
+
+            // Start thread for listening to server messages
+            Thread serverListener = new Thread(() -> {
+                try {
+                    String serverMsg;
+                    while ((serverMsg = fromNetInputStream.readLine()) != null) {
+                        System.out.println("\n[SERVER] " + serverMsg);
+                        System.out.print("Enter line: "); // prompt again
+                    }
+                } catch (IOException e) {
+                    System.out.println("Connection to server lost.");
+                }
+            });
+            serverListener.start();
+
+            // Main thread: handle user input
+            String line = "";
+            while (!line.equalsIgnoreCase("goodbye")) {
+                //System.out.print("Enter line: ");
+                line = consoleInput.readLine();
+                if (line == null) break;
+                toNetOutputStream.println(line);
+            }
+
             socket.close();
-            System.out.println("Client closed connection by inserting goodbye");
-        } catch (IOException e) {}
+            System.out.println("Client closed connection.");
+
+        } catch (Exception e) {
+            System.err.println("Error: " + e);
         }
     }
-
 }
