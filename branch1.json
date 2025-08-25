@@ -1,0 +1,24 @@
+{
+  "inventory" : {
+    "itemsMap" : {
+      "TSH001" : {
+        "product" : {
+          "name" : "TShirt Enrico Macias",
+          "description" : "T-Shirt",
+          "price" : 29.99,
+          "catalogNumber" : "TSH001"
+        },
+        "quantity" : 7
+      },
+      "JEAN01" : {
+        "product" : {
+          "name" : "Jeans  Enrico Macias",
+          "description" : "Jeans",
+          "price" : 59.99,
+          "catalogNumber" : "JEAN01"
+        },
+        "quantity" : 5
+      }
+    }
+  }
+}
