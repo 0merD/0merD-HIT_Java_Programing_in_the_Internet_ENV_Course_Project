@@ -42,12 +42,23 @@ public class ChatManager {
         }
     }
 
+    /**
+     * MODIFIED METHOD
+     * This method now checks for a reciprocal chat partnership before forwarding messages.
+     */
     private static void handleClientInput(SocketData client, String line) {
         System.out.println(new Date() + " From client " + client.getClientAddress() + ": " + line);
 
-        if (client.getChatPartner() != null) {
-            // If in a chat, forward message to partner
-            sendPrivateMessage(client, client.getChatPartner(), line);
+        SocketData partner = client.getChatPartner();
+        // A chat is only active if the partnership is reciprocal.
+        boolean isChatActive = partner != null && partner.getChatPartner() == client;
+
+        if (isChatActive) {
+            // If in a fully established chat, forward the message to the partner.
+            sendPrivateMessage(client, partner, line);
+        } else if (partner != null && !isChatActive) {
+            // If the client has a partner but the chat is not reciprocal, it means the request is pending.
+            client.getOutputStream().println("Waiting for " + partner.getClientAddress() + " to accept your chat request. Please wait.");
         } else if (line.equalsIgnoreCase("list")) {
             sendAvailableClients(client);
         } else if (line.startsWith("chat ")) {
@@ -140,7 +151,7 @@ public class ChatManager {
 
     private static void sendPrivateMessage(SocketData sender, SocketData receiver, String message) {
         if (receiver != null && receiver.getSocket().isConnected()) {
-            receiver.getOutputStream().println(sender.getClientAddress() + "@" + message);
+            receiver.getOutputStream().println("Message from: " + sender.getClientAddress() + "@ " + message);
         } else {
             sender.getOutputStream().println("Your chat partner has disconnected. The chat session is ended.");
             sender.setAvailable(true);
