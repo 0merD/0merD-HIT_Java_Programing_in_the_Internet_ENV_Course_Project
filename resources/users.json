@@ -1,17 +1,32 @@
 [
   {
-    "id": "9012345678",
-    "password": "helloworld",
+    "id": "901234567",
+    "name": "Alice Cohen",
+    "password": "HelloWorld@123",
     "userType": "Admin"
   },
   {
     "id": "123456789",
-    "password": "abc",
+    "name": "David Levi",
+    "password": "ShiftMngr#2024",
     "userType": "ShiftManager"
   },
   {
     "id": "666777888",
-    "password": "stupid",
+    "name": "Maya Ben",
+    "password": "WorkerPass9!",
     "userType": "BasicWorker"
+  },
+  {
+    "id": "555444333",
+    "name": "Tom Katz",
+    "password": "SecurePwd#77",
+    "userType": "BasicWorker"
+  },
+  {
+    "id": "987654321",
+    "name": "Noa Shalev",
+    "password": "Manager@987",
+    "userType": "ShiftManager"
   }
 ]
