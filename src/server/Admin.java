@@ -21,6 +21,7 @@ public class Admin extends User {
 
     public void deleteUser(int userId)
     {
+
         //Todo: delete user from json file.
     }
 
