@@ -28,9 +28,6 @@ public class ClientChat {
                 try {
                     String serverMsg;
                     while ((serverMsg = fromNetInputStream.readLine()) != null) {
-                        // For a cleaner UI, we can use \r to clear the current line
-                        // before printing the server message, then redraw the prompt.
-                        // However, for simplicity, we'll stick to the newline.
                         System.out.println("\n[SERVER] " + serverMsg);
                         System.out.print("> ");
                     }
@@ -42,13 +39,23 @@ public class ClientChat {
 
             // Main thread: handle user input
             String line = "";
-            while (!line.equalsIgnoreCase("goodbye")) {
-                // MODIFICATION: Use a simpler, less intrusive prompt.
+
+            // --- MODIFICATION HERE ---
+            // The loop should continue indefinitely.
+            while (true) {
                 System.out.print("> ");
                 line = consoleInput.readLine();
                 if (line == null) break;
+
+                // If the user wants to truly exit, they can type "exit".
+                // This is a new command only for the client-side.
+                if (line.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
                 toNetOutputStream.println(line);
             }
+            // --- END OF MODIFICATION ---
 
             socket.close();
             System.out.println("Client closed connection.");
