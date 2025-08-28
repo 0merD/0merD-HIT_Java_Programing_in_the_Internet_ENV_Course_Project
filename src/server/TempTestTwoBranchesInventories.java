@@ -1,5 +1,7 @@
 package server;
 
+//Todo: Delete this class
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;

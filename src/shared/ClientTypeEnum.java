@@ -1,6 +1,6 @@
 package shared;
 
-public enum ClientType {
+public enum ClientTypeEnum {
     CustomerNew,
     CustomerReturning,
     CustomerVIP

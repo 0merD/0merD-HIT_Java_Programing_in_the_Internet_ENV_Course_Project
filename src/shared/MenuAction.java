@@ -1,6 +1,7 @@
 package shared;
 
-@FunctionalInterface
-public interface MenuAction {
-    void execute();
-}
+//Todo: Delete this class
+//@FunctionalInterface
+//public interface MenuAction {
+//    void execute();
+//}

@@ -1,14 +1,14 @@
 package shared;
 
-public class CustomerAbstract {
+public abstract class CustomerAbstract {
     int id;
     String firstName;
     String lastName;
     String email;
     String phoneNumber;
-    Enum<ClientType> clientType;
+    ClientTypeEnum clientType;
 
-    public CustomerAbstract(int id, String firstName, String lastName, String email, String phoneNumber, Enum<ClientType> clientType) {
+    public CustomerAbstract(int id, String firstName, String lastName, String email, String phoneNumber, ClientTypeEnum clientType) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -17,5 +17,5 @@ public class CustomerAbstract {
         this.clientType = clientType;
     }
 
-
+    public abstract void makePurchase();
 }

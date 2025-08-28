@@ -1,17 +1,36 @@
 [
   {
-    "id": "9012345678",
-    "password": "helloworld",
+    "username": "enrico",
+    "id": "1",
+    "password": "pass",
+    "email": "encrico@gmail.com",
+    "branchNumber": 1,
     "userType": "Admin"
   },
   {
-    "id": "123456789",
+    "username": "avraham",
+    "id": "2",
     "password": "abc",
+    "email": "avraham@gmail.com",
+    "branchNumber": 2,
     "userType": "ShiftManager"
   },
   {
-    "id": "666777888",
-    "password": "stupid",
+    "username": "basic",
+    "id": "23",
+    "password": "1234",
+    "email": "basic@gmail.com",
+    "phoneNumber": "0547738844",
+    "accountNumber": "9876",
+    "branchNumber": 2,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "omer",
+    "id": "3",
+    "password": "123",
+    "email": "omer@gmail.com",
+    "branchNumber": 3,
     "userType": "BasicWorker"
   }
 ]

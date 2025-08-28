@@ -6,30 +6,36 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Date;
+import java.util.Scanner;
 
 public class ClientChat {
-    public static void main(String[] args) {
-        Socket socket = null;
-        BufferedReader fromNetInputStream;   // for reading data from server
-        BufferedReader consoleInput;         // for receiving data from user through console
-        PrintStream toNetOutputStream;       // for sending data to server
 
+    private final String host;
+    private final int port;
+    private Socket socket;
+    private BufferedReader fromServer;
+    private PrintStream toServer;
+    private Scanner consoleInputStream;
+
+    public ClientChat(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+
+    public void start() {
         try {
-            socket = new Socket("localhost", 7000); // connect to server
-            System.out.println(new Date() + " ---> Connected to server at " +
-                    socket.getInetAddress() + ":" + socket.getPort());
+            socket = new Socket(host, port);
+            System.out.printf("Connected to server at %s:%d%n", socket.getInetAddress(), socket.getPort());
 
-            fromNetInputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            toNetOutputStream = new PrintStream(socket.getOutputStream());
-            consoleInput = new BufferedReader(new InputStreamReader(System.in));
+            toServer = new PrintStream(socket.getOutputStream());
+            fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            consoleInputStream = new Scanner(System.in);
 
-            // Start thread for listening to server messages
             Thread serverListener = new Thread(() -> {
                 try {
                     String serverMsg;
-                    while ((serverMsg = fromNetInputStream.readLine()) != null) {
-                        System.out.println("\n[SERVER] " + serverMsg);
-                        System.out.print("Enter line: "); // prompt again
+                    while ((serverMsg = fromServer.readLine()) != null) {
+                        System.out.println(serverMsg);
                     }
                 } catch (IOException e) {
                     System.out.println("Connection to server lost.");
@@ -37,20 +43,23 @@ public class ClientChat {
             });
             serverListener.start();
 
-            // Main thread: handle user input
-            String line = "";
-            while (!line.equalsIgnoreCase("goodbye")) {
-                //System.out.print("Enter line: ");
-                line = consoleInput.readLine();
-                if (line == null) break;
-                toNetOutputStream.println(line);
+            String line;
+            while (true) {
+                line = consoleInputStream.nextLine();
+                if (line.equalsIgnoreCase("exit")) break;
+                toServer.println(line);
             }
 
             socket.close();
-            System.out.println("Client closed connection.");
+            System.out.println("Disconnected from server.");
 
-        } catch (Exception e) {
-            System.err.println("Error: " + e);
+        } catch (IOException e) {
+            System.err.println("Failed to connect to server: " + e.getMessage());
         }
     }
+
+    public static void main(String[] args) {
+        new ClientChat("localhost",1234).start();
+    }
 }
+
