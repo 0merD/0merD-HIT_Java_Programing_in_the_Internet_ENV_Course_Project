@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -20,6 +21,10 @@ public class ClientLoginHandler extends Thread {
     // Note to myself - like Action in C#
     private final Map<OperationTypeEnum, BiConsumer<BufferedReader, PrintWriter>> operationHandlersMap = new EnumMap<>(OperationTypeEnum.class);
 
+
+    //Managers:
+    CustomerManager customerManager = CustomerManager.getInstance();
+    private User loggedInUser;
 
     public ClientLoginHandler(Socket socket) {
         this.socket = socket;
@@ -53,7 +58,7 @@ public class ClientLoginHandler extends Thread {
                 PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
         ) {
 
-            User loggedInUser =  authenticateClient(input, output);
+            loggedInUser =  authenticateClient(input, output);
 
             if (loggedInUser == null) {
                 output.println("Authentication failed.");
@@ -232,11 +237,40 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleViewBranchInventory(BufferedReader input, PrintWriter output) {
+        int branchNumber = loggedInUser.getBranchNumber(); // get the user’s branch number
+
+        output.println("Inventory for branch #" + branchNumber + ":");
+
+        // Use InventoryManager to get the inventory
+        InventoryManager inventoryManager = InventoryManager.getInstance();
+        List<InventoryItem> inventory = inventoryManager.getInventoryByCity(branchNumber);
+
+        if (inventory.isEmpty()) {
+            output.println("No inventory found for this branch.");
+            return;
+        }
+
+        // Display the inventory items
+        for (InventoryItem item : inventory) {
+            Product p = item.getProduct();
+            output.println(String.format(
+                    "%s (%s) - Price: %.2f - Quantity: %d",
+                    p.getName(),
+                    p.getProductStringIdentifier(),
+                    p.getPrice(),
+                    item.getQuantity()
+            ));
+        }
         String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         output.println("Method: " + methodName);
     }
 
     private void handleExecuteSale(BufferedReader input, PrintWriter output) {
+        //Todo: get input on the items.
+        //Todo: Check branch inventory has the items, if not - throw and exception.
+        //Todo: use the discounts to determine the best option.
+        //Todo: Execute Sale: (handle Inventory)
+        //Todo: Log Sale
         String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         output.println("Method: " + methodName);
     }
@@ -257,8 +291,47 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleAddCustomer(BufferedReader input, PrintWriter output) {
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
+
+        try {
+            output.println("Enter customer full name:");
+            String fullName = input.readLine().trim();
+
+            output.println("Enter customer phone number:");
+            String phoneNumber = input.readLine().trim();
+
+            output.println("Enter customer type (New / Returning / Vip):");
+            String typeInput = input.readLine().trim();
+            CustomerTypeEnum customerType;
+            try {
+                customerType = CustomerTypeEnum.valueOf(typeInput);
+            } catch (IllegalArgumentException e) {
+                output.println("Invalid customer type. Aborting.");
+                return;
+            }
+
+            // Generate a new customer ID automatically
+            String custId = "C" + (CustomerManager.getInstance().getAllCustomers().size() + 1);
+
+            CustomerAbstract newCustomer = CustomerFactory.createCustomer(
+                    fullName,
+                    custId,
+                    phoneNumber,
+                    customerType
+            );
+
+            customerManager.addCustomer(newCustomer);
+
+            output.println("Customer added successfully! ID: " + custId);
+
+
+            String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+            output.println("Method: " + methodName);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            output.println("Failed to add customer: " + e.getMessage());
+        }
+
     }
 
     private void handleJoinExistingChat(BufferedReader input, PrintWriter output) {
@@ -272,6 +345,25 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleViewAllCustomers(BufferedReader input, PrintWriter output) {
+        output.println("=== All Customers ===");
+
+        List<CustomerAbstract> customers = CustomerManager.getInstance().getAllCustomers();
+
+        if (customers.isEmpty()) {
+            output.println("No customers found.");
+            return;
+        }
+
+        for (CustomerAbstract customer : customers) {
+            output.println(String.format(
+                    "Name: %s, ID: %s, Phone: %s, Type: %s",
+                    customer.getFullName(),
+                    customer.getCustId(),
+                    customer.getPhoneNumber(),
+                    customer.getCustomerType()
+            ));
+        }
+
         String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         output.println("Method: " + methodName);
     }

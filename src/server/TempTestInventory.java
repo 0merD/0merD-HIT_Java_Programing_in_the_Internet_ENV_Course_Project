@@ -12,7 +12,7 @@ public class TempTestInventory {
 
     public static void main(String[] args) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        Path inventoryPath = Paths.get("resources", "branch_inventory_telaviv.json");
+        Path inventoryPath = Paths.get("resources", "telaviv.json");
 
         // 1. Try to load existing inventory from JSON
         Branch branch;

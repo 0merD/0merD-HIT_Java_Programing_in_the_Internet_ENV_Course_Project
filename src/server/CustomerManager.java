@@ -17,6 +17,8 @@ import java.util.Map;
 
 public class CustomerManager implements CustomerStorage {
 
+    private static CustomerManager instance;
+
     private static int nextCustomerId = 1;
 
     private final Path FILE_PATH = Paths.get("resources", "customers.json");
@@ -26,8 +28,15 @@ public class CustomerManager implements CustomerStorage {
     // Uses custId (String) as the unique id per customer
     private final Map<String, CustomerAbstract> customers = new HashMap<>();
 
+    private CustomerManager() {}
 
-
+    public static synchronized CustomerManager getInstance() {
+        if (instance == null) {
+            instance = new CustomerManager();
+            instance.loadCustomersFromStorage();
+        }
+        return instance;
+    }
 
     @Override
     public void saveCustomers(List<CustomerAbstract> customersToSave) {
@@ -65,7 +74,7 @@ public class CustomerManager implements CustomerStorage {
         return loadedList;
     }
 
-    private void addCustomer(CustomerAbstract customer) {
+    public void addCustomer(CustomerAbstract customer) {
 
         if (!customers.containsKey(customer.getCustId())) {
             customers.put(customer.getCustId(), customer);
@@ -76,7 +85,7 @@ public class CustomerManager implements CustomerStorage {
     }
 
 
-    private List<CustomerAbstract> getAllCustomers() {
+    public List<CustomerAbstract> getAllCustomers() {
         return new ArrayList<>(customers.values());
     }
 
@@ -104,11 +113,9 @@ public class CustomerManager implements CustomerStorage {
                     customerType
             );
         }
-        // default constructor needed for Gson
-        public CustomerJson(String gCustName, String gCustId, String gCustphoneNumber) {}
     }
 
-    // TODO: Don't forget to delete this main
+    // TODO: Delete this main.
     // main for testing only
     public static void main(String[] args) {
 

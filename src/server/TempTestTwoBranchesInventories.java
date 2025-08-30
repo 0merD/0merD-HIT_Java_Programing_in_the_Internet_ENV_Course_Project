@@ -10,8 +10,8 @@ import java.util.concurrent.Executors;
 public class TempTestTwoBranchesInventories {
 
     public static void main(String[] args) {
-        Path inventoryPathTelaviv = Paths.get("resources", "branch_inventory_telaviv.json");
-        Path inventoryPathHaifa = Paths.get("resources", "branch_inventory_haifa.json");
+        Path inventoryPathTelaviv = Paths.get("resources", "telaviv.json");
+        Path inventoryPathHaifa = Paths.get("resources", "haifa.json");
         // Create branches with JSON file paths
         Branch telAvivBranch = new Branch("Tel Aviv", 1, inventoryPathTelaviv.toAbsolutePath().toString());
         Branch haifaBranch = new Branch("Haifa", 2, inventoryPathHaifa.toAbsolutePath().toString());

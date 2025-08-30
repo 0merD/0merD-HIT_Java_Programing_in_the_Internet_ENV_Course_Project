@@ -24,6 +24,12 @@
     "customerType": "New"
   },
   {
+    "fullName": "C7",
+    "custId": "roy zimon",
+    "phoneNumber": "05312341234",
+    "customerType": "New"
+  },
+  {
     "fullName": "Bob Levi",
     "custId": "987654321",
     "phoneNumber": "052-2222222",
@@ -34,5 +40,11 @@
     "custId": "555555555",
     "phoneNumber": "053-3333333",
     "customerType": "Vip"
+  },
+  {
+    "fullName": "C8",
+    "custId": "noam seifer",
+    "phoneNumber": "05412341234",
+    "customerType": "New"
   }
 ]
