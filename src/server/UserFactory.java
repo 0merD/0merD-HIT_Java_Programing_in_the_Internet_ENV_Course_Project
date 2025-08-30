@@ -1,9 +1,5 @@
-package server.utilities;
+package server;
 
-import server.BasicWorker;
-import server.ShiftManager;
-import server.User;
-import server.Admin;
 import shared.UserType;
 
 public class UserFactory {

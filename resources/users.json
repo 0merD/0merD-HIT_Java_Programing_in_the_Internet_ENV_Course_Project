@@ -26,11 +26,13 @@
     "userType": "BasicWorker"
   },
   {
-    "username": "omer",
-    "id": "3",
-    "password": "123",
-    "email": "omer@gmail.com",
-    "branchNumber": 3,
-    "userType": "BasicWorker"
+    "username": "noam",
+    "id": "1234",
+    "password": "noam1234",
+    "email": "noamseifer@gmail.com",
+    "phoneNumber": "0547739944",
+    "accountNumber": "1",
+    "branchNumber": 2,
+    "userType": "ShiftManager"
   }
 ]

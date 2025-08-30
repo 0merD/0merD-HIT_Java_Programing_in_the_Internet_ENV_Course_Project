@@ -1,6 +1,5 @@
 package server;
 
-import server.utilities.UserFactory;
 import shared.UserType;
 
 public class Admin extends User {

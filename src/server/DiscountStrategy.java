@@ -1,5 +1,6 @@
 package server;
 
+// TODO: delete this class
 public class DiscountStrategy {
 
     /**

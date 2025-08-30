@@ -4,8 +4,6 @@ import java.time.LocalDate;
 
 
 public class Purchase {
-
-
     private LocalDate date;
     private int quantity;
     private double price;

@@ -1,7 +1,6 @@
 package server;
 
 import com.google.gson.GsonBuilder;
-import server.utilities.UserFactory;
 import shared.UserType;
 
 import java.io.FileReader;
@@ -29,6 +28,8 @@ public class UserManager {
     // <Key, Value> = <username, User>
     private Map<String, User> users = new HashMap<>();
 
+    private final Object lockUsersFile = new Object();
+
 
     private UserManager() {
         loadUsersFromJson(JSON_FILE_PATH.toString());
@@ -42,27 +43,78 @@ public class UserManager {
         return instance;
     }
 
-    public synchronized boolean addUser(User user) throws IllegalArgumentException, IOException {
+    public boolean addUser(User user) throws IllegalArgumentException, IOException {
         if (user == null || user.getUsername() == null || user.getUsername().isEmpty()) {
             throw new IllegalArgumentException("Invalid user object or username.");
         }
         if (user.getUserType() == null) {
             throw new IllegalArgumentException("User role cannot be null.");
         }
-        if (users.containsKey(user.getUsername())) {
-            throw new IllegalArgumentException("User with username '" + user.getUsername() + "' already exists.");
+
+        synchronized (lockUsersFile) {
+            if (users.containsKey(user.getUsername())) {
+                throw new IllegalArgumentException("User with username '" + user.getUsername() + "' already exists.");
+            }
+
+            users.put(user.getUsername(), user);
+
+            try {
+                saveUsersToJson();
+                return true;
+            } catch (IOException e) {
+                users.remove(user.getUsername()); // rollback
+                throw new IOException("Failed to save user to JSON.", e);
+            }
+        }
+    }
+
+    public boolean deleteUser(String username) throws IllegalArgumentException, IOException {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Invalid username.");
         }
 
-        users.put(user.getUsername(), user);
+        synchronized (lockUsersFile) {
+            User removed = users.remove(username);
+            if (removed == null) {
+                throw new IllegalArgumentException("User with username '" + username + "' does not exist.");
+            }
 
-        try {
-            saveUsersToJson(); // persist to JSON
-        } catch (IOException e) {
-            users.remove(user.getUsername()); // rollback in case of failure
-            throw new IOException("Failed to save user to JSON.", e);
+            try {
+                saveUsersToJson(); // persist the change
+                return true;
+            } catch (IOException e) {
+                users.put(username, removed); // rollback
+                throw new IOException("Failed to save users to JSON.", e);
+            }
+        }
+    }
+
+
+    public boolean modifyUserRole(String username, UserType newRole) throws IllegalArgumentException, IOException {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Invalid username.");
+        }
+        if (newRole == null) {
+            throw new IllegalArgumentException("User role cannot be null.");
         }
 
-        return true;
+        synchronized (lockUsersFile) {
+            User user = users.get(username);
+            if (user == null) {
+                throw new IllegalArgumentException("User with username '" + username + "' does not exist.");
+            }
+
+            UserType oldRole = user.getUserType();
+            user.setUserType(newRole);
+
+            try {
+                saveUsersToJson(); // persist the change
+                return true;
+            } catch (IOException e) {
+                user.setUserType(oldRole); // rollback
+                throw new IOException("Failed to save users to JSON.", e);
+            }
+        }
     }
 
     private void loadUsersFromJson(String jsonFilePath) {
@@ -125,20 +177,9 @@ public class UserManager {
     }
 
     public User getUserByUserName(String username) {
-        return users.get(username);
+        return users.get(username); // returns null if key not in Map
     }
 
-    private boolean isAdmin(User user) {
-        return user.getUserType() == UserType.Admin;
-    }
-
-    private boolean isShiftManager(User user) {
-        return user.getUserType() == UserType.ShiftManager;
-    }
-
-    private boolean isBasicWorker(User user) {
-        return user.getUserType() == UserType.BasicWorker;
-    }
 
     // Helper class for JSON mapping
     private static class UserJson {

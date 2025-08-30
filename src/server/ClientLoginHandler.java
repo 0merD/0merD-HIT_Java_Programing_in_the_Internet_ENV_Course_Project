@@ -139,25 +139,96 @@ public class ClientLoginHandler extends Thread {
 
     // Operation handlers
     private void handleAddUser(BufferedReader input, PrintWriter output) {
-        // Todo: Replace Temporary user with requesting User Data from Client.
-        User tempUser = new BasicWorker("basic", "23", "1234", "basic@gmail.com", "0547738844", "9876", 2, UserType.BasicWorker);
-
         try {
-            UserManager.getInstance().addUser(tempUser);
+            //Todo: implement validations.
+            output.println("Enter username:");
+            String username = input.readLine();
+
+            output.println("Enter id:");
+            String id = input.readLine();
+
+            output.println("Enter password:");
+            String password = input.readLine();
+
+            output.println("Enter email:");
+            String email = input.readLine();
+
+            output.println("Enter phone number:");
+            String phone = input.readLine();
+
+            output.println("Enter account number:");
+            String accountNumber = input.readLine();
+
+            output.println("Enter branch number:");
+            int branchNumber = Integer.parseInt(input.readLine());
+
+            output.println("enter user type: admin/shiftmanager/basicworker - case insensitive");
+            String userTypeStr = input.readLine();
+            UserType userType = UserType.fromString(userTypeStr);
+
+            if (userType == null) {
+                output.println("Invalid user type.");
+            }
+
+            User newUser = new BasicWorker(username, id, password, email, phone, accountNumber, branchNumber, userType);
+
+            UserManager.getInstance().addUser(newUser);
             output.println("User added successfully.");
+
         } catch (IOException e) {
             output.println("Failed to add user: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            output.println("Invalid number entered for branch.");
         }
     }
 
     private void handleDeleteUser(BufferedReader input, PrintWriter output) {
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
+        //Todo: implement validations.
+        try {
+            output.println("Enter username of the user to delete:");
+            String username = input.readLine().trim();
+
+            User userToDelete = UserManager.getInstance().getUserByUserName(username);
+
+            if (userToDelete == null) {
+                output.println("User not found.");
+                return;
+            }
+            String userNameStrOfUserToDelete = userToDelete.getUsername();
+            UserManager.getInstance().deleteUser(userNameStrOfUserToDelete);
+            output.println("User deleted successfully.");
+
+        } catch (IOException e) {
+            output.println("Failed to delete user: " + e.getMessage());
+        }
     }
 
     private void handleModifyUserRole(BufferedReader input, PrintWriter output) {
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
+        //Todo: implement validations.
+        try {
+            output.println("Enter the username of the user to modify:");
+            String username = input.readLine();
+
+            output.println("Enter new user type (admin/shiftmanager/basicworker) - case insensitive:");
+            String roleStr = input.readLine().trim().toLowerCase();
+
+            UserType newRole = UserType.fromString(roleStr);
+
+            if (newRole == null) {
+                output.println("Invalid user type.");
+                return;
+            }
+
+            boolean success = UserManager.getInstance().modifyUserRole(username, newRole);
+            if (success) {
+                output.println("User role updated successfully.");
+            }
+
+        } catch (IllegalArgumentException e) {
+            output.println("Error: " + e.getMessage());
+        } catch (IOException e) {
+            output.println("IO Error: " + e.getMessage());
+        }
     }
 
     private void handleViewBranchInventory(BufferedReader input, PrintWriter output) {
