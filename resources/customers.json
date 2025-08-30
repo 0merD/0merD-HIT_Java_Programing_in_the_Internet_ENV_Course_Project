@@ -1,0 +1,38 @@
+[
+  {
+    "fullName": "555555555",
+    "custId": "Charlie Gold",
+    "phoneNumber": "053-3333333",
+    "customerType": "Vip"
+  },
+  {
+    "fullName": "123456789",
+    "custId": "Alice Cohen",
+    "phoneNumber": "050-1111111",
+    "customerType": "New"
+  },
+  {
+    "fullName": "987654321",
+    "custId": "Bob Levi",
+    "phoneNumber": "052-2222222",
+    "customerType": "Returning"
+  },
+  {
+    "fullName": "Alice Cohen",
+    "custId": "123456789",
+    "phoneNumber": "050-1111111",
+    "customerType": "New"
+  },
+  {
+    "fullName": "Bob Levi",
+    "custId": "987654321",
+    "phoneNumber": "052-2222222",
+    "customerType": "Returning"
+  },
+  {
+    "fullName": "Charlie Gold",
+    "custId": "555555555",
+    "phoneNumber": "053-3333333",
+    "customerType": "Vip"
+  }
+]
