@@ -1,32 +1,39 @@
 [
   {
-    "id": "901234567",
-    "name": "Alice Cohen",
-    "password": "HelloWorld@123",
+
+    "username": "enrico",
+    "id": "1",
+    "password": "pass",
+    "email": "encrico@gmail.com",
+    "branchNumber": 1,
     "userType": "Admin"
   },
   {
-    "id": "123456789",
-    "name": "David Levi",
-    "password": "ShiftMngr#2024",
+    "username": "avraham",
+    "id": "2",
+    "password": "abc",
+    "email": "avraham@gmail.com",
+    "branchNumber": 2,
     "userType": "ShiftManager"
   },
   {
-    "id": "666777888",
-    "name": "Maya Ben",
-    "password": "WorkerPass9!",
+    "username": "basic",
+    "id": "23",
+    "password": "1234",
+    "email": "basic@gmail.com",
+    "phoneNumber": "0547738844",
+    "accountNumber": "9876",
+    "branchNumber": 2,
     "userType": "BasicWorker"
   },
   {
-    "id": "555444333",
-    "name": "Tom Katz",
-    "password": "SecurePwd#77",
-    "userType": "BasicWorker"
-  },
-  {
-    "id": "987654321",
-    "name": "Noa Shalev",
-    "password": "Manager@987",
+    "username": "noam",
+    "id": "1234",
+    "password": "noam1234",
+    "email": "noamseifer@gmail.com",
+    "phoneNumber": "0547739944",
+    "accountNumber": "1",
+    "branchNumber": 1,
     "userType": "ShiftManager"
   }
 ]

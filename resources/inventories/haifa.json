@@ -1,0 +1,29 @@
+[
+  {
+    "product": {
+      "productStringIdentifier": "C1001",
+      "name": "T-Shirt",
+      "description": "Cotton short-sleeve t-shirt",
+      "price": 25.0
+    },
+    "quantity": 50
+  },
+  {
+    "product": {
+      "productStringIdentifier": "C1002",
+      "name": "Jeans",
+      "description": "Blue denim jeans",
+      "price": 60.0
+    },
+    "quantity": 40
+  },
+  {
+    "product": {
+      "productStringIdentifier": "C1003",
+      "name": "Jacket",
+      "description": "Waterproof windbreaker jacket",
+      "price": 120.0
+    },
+    "quantity": 20
+  }
+]

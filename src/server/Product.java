@@ -1,11 +1,21 @@
 package server;
 
-public abstract class Product {
+public  class Product {
     String name;
     String description;
     double price;
-    int catalogNumber; // "Makat"
-    int serialNumber; // the specific product
+    String productStringIdentifier; // "Makat" // Modified to String
+
+
+    public Product() {}
+
+    public Product(String catalogStringIdentifier, String name, String description, double price) {
+        this.productStringIdentifier = catalogStringIdentifier;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+    }
+
 
     public String getName() {
         return name;
@@ -31,19 +41,11 @@ public abstract class Product {
         this.price = price;
     }
 
-    public int getCatalogNumber() {
-        return catalogNumber;
+    public String getProductStringIdentifier() {
+        return productStringIdentifier;
     }
 
-    public void setCatalogNumber(int catalogNumber) {
-        this.catalogNumber = catalogNumber;
-    }
-
-    public int getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(int serialNumber) {
-        this.serialNumber = serialNumber;
+    public void setProductStringIdentifier(String productStringIdentifier) {
+        this.productStringIdentifier = productStringIdentifier;
     }
 }
