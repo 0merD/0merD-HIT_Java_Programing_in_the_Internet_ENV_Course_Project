@@ -39,7 +39,7 @@ public class CommandHandler {
         }
     }
 
-    private void handleOutOfChatCommands(SocketData client, String line) {
+    public void handleOutOfChatCommands(SocketData client, String line) {
         if (line.equalsIgnoreCase("list")) {
             sendAvailableClients(client);
         } else if (line.equalsIgnoreCase("listall")) {
@@ -193,7 +193,7 @@ public class CommandHandler {
                 .forEach(receiver -> receiver.getOutputStream().println(sender.getClientAddress() + ": " + message));
     }
 
-    private void sendAvailableClients(SocketData requester) {
+    public void sendAvailableClients(SocketData requester) {
         requester.getOutputStream().println("Available clients:");
         serverState.getAllConnections().stream()
                 .filter(sd -> sd.isAvailable() && sd != requester)

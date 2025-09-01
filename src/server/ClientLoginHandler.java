@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketOption;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -18,7 +19,8 @@ import java.util.function.BiConsumer;
 
 public class ClientLoginHandler extends Thread {
     private final Socket socket;
-
+    private CommandHandler commandHandler;
+    private SocketData socketData;
     // Note to myself - like Action in C#
     private final Map<OperationTypeEnum, BiConsumer<BufferedReader, PrintWriter>> operationHandlersMap = new EnumMap<>(OperationTypeEnum.class);
 
@@ -30,9 +32,10 @@ public class ClientLoginHandler extends Thread {
 
     private User loggedInUser;
 
-    public ClientLoginHandler(Socket socket) {
+    public ClientLoginHandler(Socket socket, ServerState serverState) {
         this.socket = socket;
-
+        this.socketData = new SocketData(socket);
+        this.commandHandler = new CommandHandler(serverState);
         initOperationHandlers();
     }
 
@@ -317,8 +320,9 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleViewAvailableToChat(BufferedReader input, PrintWriter output) {
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
+        //String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        //output.println("Method: " + methodName);
+        commandHandler.sendAvailableClients(socketData);
     }
 
     private void handleViewProductPrice(BufferedReader input, PrintWriter output) {

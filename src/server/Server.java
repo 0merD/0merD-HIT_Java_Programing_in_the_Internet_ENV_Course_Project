@@ -8,7 +8,7 @@ public class Server {
 
     private static final int PORT = 1234;
     private static boolean isServerRunning = true;
-
+    private static ServerState serverState = new ServerState();
     private static UserManager userManagerSingletonInstance = UserManager.getInstance(); // initializes the UserManager singleton Instance.
 
     public static void main(String[] args) throws IOException {
@@ -17,11 +17,10 @@ public class Server {
             System.out.printf("Server is listening on port %d Waiting for clients...%n", PORT);
 
             while (isServerRunning) {
-                final Socket socket = serverSocket.accept(); // blocking
+                final Socket clientSocket = serverSocket.accept(); // blocking
+                System.out.printf("Accepted connection from [%s]", clientSocket.getInetAddress());
 
-                System.out.printf("Accepted connection from [%s]", socket.getInetAddress());
-
-                new ClientLoginHandler(socket).start();
+                new ClientLoginHandler(clientSocket,serverState).start();
             }
         }
     }
