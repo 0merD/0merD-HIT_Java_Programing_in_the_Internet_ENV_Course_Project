@@ -1,18 +1,20 @@
 package server;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
-import java.io.BufferedWriter;
 
 public class ChatManager {
 
@@ -46,7 +48,6 @@ public class ChatManager {
     }
 
     // --- MODIFIED ChatSession CLASS ---
-    // Private static class to manage chat session details
     public static class ChatSession {
         // These two are final and represent the original chat parties for logging
         final SocketData client1;
@@ -72,6 +73,11 @@ public class ChatManager {
             if (!participants.contains(member)) {
                 participants.add(member);
             }
+        }
+
+        // --- NEW METHOD ---
+        public void removeParticipant(SocketData member) {
+            participants.remove(member);
         }
 
         public Vector<SocketData> getParticipants() {
@@ -134,23 +140,31 @@ public class ChatManager {
     private static void handleDisconnection(SocketData client) {
         ChatSession session = client.getCurrentSession();
         if (session != null) {
-            // Notify remaining members and end the session
-            session.getParticipants().remove(client); // Remove the disconnected client
-            for (SocketData member : session.getParticipants()) {
-                member.getOutputStream().println("A participant (" + client.getClientAddress() + ") has disconnected. The chat has ended.");
+            // A participant disconnected, treat it as them leaving the chat.
+            if (session.getParticipants().size() <= 2) {
+                // If it was a 2-person chat, the session ends for the other person too.
+                endChatSession(session, true);
+            } else {
+                // If it was a multi-person chat, the session continues.
+                leaveChatSession(client, session);
             }
-            endChatSession(session, false);
         }
     }
 
-
+    // --- MODIFIED handleClientInput ---
     private static void handleClientInput(SocketData client, String line) {
         System.out.println(new Date() + " From client " + client.getClientAddress() + ": " + line);
         ChatSession session = client.getCurrentSession();
 
         if (session != null) { // Client is in an active chat
             if (line.equalsIgnoreCase("goodbye")) {
-                endChatSession(session, true);
+                // If 2 or fewer people are in the chat, "goodbye" ends the session for everyone.
+                if (session.getParticipants().size() <= 2) {
+                    endChatSession(session, true);
+                } else {
+                    // If more than 2 people are in the chat, the user just leaves.
+                    leaveChatSession(client, session);
+                }
             } else if (line.equalsIgnoreCase("savechat")) {
                 session.saveChatLog = true;
                 client.getOutputStream().println("This chat will be saved upon completion.");
@@ -166,7 +180,6 @@ public class ChatManager {
                 String targetId = line.substring(5).trim();
                 handleChatRequest(client, targetId);
             } else if (line.startsWith("join ")) {
-                // For testing, assume everyone is a manager
                 if (true) { // User's requirement: if(true) for testing
                     String targetId = line.substring(5).trim();
                     handleJoinRequest(client, targetId);
@@ -181,12 +194,39 @@ public class ChatManager {
         }
     }
 
+    // --- NEW leaveChatSession METHOD ---
+    /**
+     * Handles a single client leaving a multi-person chat session.
+     * The session continues for the remaining participants.
+     * @param leaver The client that is leaving.
+     * @param session The session they are leaving from.
+     */
+    private static void leaveChatSession(SocketData leaver, ChatSession session) {
+        // Remove the client from the session and clean up their state
+        session.removeParticipant(leaver);
+        leaver.setAvailable(true);
+        leaver.setCurrentSession(null);
+        activeChatSessions.remove(leaver);
+        leaver.getOutputStream().println("You have left the chat. You are now available.");
+
+        // Notify the remaining participants
+        String leaveMessage = "Participant " + leaver.getClientAddress() + " has left the chat.";
+        for (SocketData member : session.getParticipants()) {
+            member.getOutputStream().println(leaveMessage);
+        }
+
+        processNextInQueue(leaver);
+    }
+
     private static void endChatSession(ChatSession session, boolean notify) {
         session.endSession();
         saveSessionToLog(session);
 
-        for (SocketData member : session.getParticipants()) {
-            if (notify) {
+        // Make a copy to avoid ConcurrentModificationException if a member disconnects during iteration
+        Vector<SocketData> membersToEnd = new Vector<>(session.getParticipants());
+
+        for (SocketData member : membersToEnd) {
+            if (notify && member.getSocket().isConnected()) {
                 member.getOutputStream().println("The chat session has ended. You are now available for new chats.");
             }
             member.setAvailable(true);
@@ -266,7 +306,6 @@ public class ChatManager {
             return;
         }
 
-        // Add manager to the session
         session.addParticipant(manager);
         manager.setCurrentSession(session);
         manager.setAvailable(false);
@@ -275,7 +314,6 @@ public class ChatManager {
         String joinMsg = "A manager (" + manager.getClientAddress() + ") has joined the chat.";
         manager.getOutputStream().println("You have joined the chat.");
 
-        // Notify other participants
         for (SocketData member : session.getParticipants()) {
             if (member != manager) {
                 member.getOutputStream().println(joinMsg);
@@ -286,7 +324,7 @@ public class ChatManager {
     private static void acceptChatRequest(SocketData replier) {
         SocketData requester = findRequesterFor(replier);
         if (requester != null) {
-            requester.setPendingRequestTo(null); // Clear the pending request
+            requester.setPendingRequestTo(null);
 
             ChatSession session = new ChatSession(requester, replier);
             requester.setCurrentSession(session);
@@ -338,7 +376,7 @@ public class ChatManager {
 
     private static void sendPrivateMessage(SocketData sender, String message) {
         ChatSession session = sender.getCurrentSession();
-        if (session == null) return; // Should not happen if called correctly
+        if (session == null) return;
 
         session.appendMessage(sender, message);
 
