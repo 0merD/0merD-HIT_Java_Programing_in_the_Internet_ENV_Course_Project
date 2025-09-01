@@ -41,6 +41,7 @@ public class InventoryManager {
     public List<InventoryItem> getInventoryByCity(Integer branchNumber) {
         String cityName = branchNumberToCity.get(branchNumber);
         File file = new File(INVENTORY_DIR + cityName + ".json");
+
         if (!file.exists()) return new ArrayList<>();
 
         try (FileReader reader = new FileReader(file)) {
@@ -54,32 +55,48 @@ public class InventoryManager {
         }
     }
 
-    // TODO: Delete Main for testing purposes only
-    public static void main(String[] args) {
-        InventoryManager inventoryManager = InventoryManager.getInstance();
+    public boolean hasStock(Integer branchNumber, String productId, int qty) {
+        List<InventoryItem> inventory = getInventoryByCity(branchNumber);
 
-        // Example: test Tel Aviv branch
-        System.out.println("=== Tel Aviv Branch Inventory ===");
-        List<InventoryItem> telAvivInventory = inventoryManager.getInventoryByCity(1);
-        if (telAvivInventory.isEmpty()) {
-            System.out.println("No inventory found.");
-        } else {
-            for (InventoryItem item : telAvivInventory) {
-                System.out.printf("%s - %d units\n", item.getProduct().getName(), item.getQuantity());
+        // Search for the product
+        for (InventoryItem item : inventory) {
+            if (item.getProduct().productStringIdentifier.equals(productId)) {
+                return item.getQuantity() >= qty;
             }
         }
 
-        // Example: test Haifa branch
-        System.out.println("\n=== Haifa Branch Inventory ===");
-        List<InventoryItem> haifaInventory = inventoryManager.getInventoryByCity(2);
-        if (haifaInventory.isEmpty()) {
-            System.out.println("No inventory found.");
-        } else {
-            for (InventoryItem item : haifaInventory) {
-                System.out.printf("%s - %d units\n", item.getProduct().getName(), item.getQuantity());
-            }
-        }
+        // Product not found in inventory
+        return false;
+
+
     }
+
+    // TODO: Delete Main for testing purposes only
+//    public static void main(String[] args) {
+//        InventoryManager inventoryManager = InventoryManager.getInstance();
+//
+//        // Example: test Tel Aviv branch
+//        System.out.println("=== Tel Aviv Branch Inventory ===");
+//        List<InventoryItem> telAvivInventory = inventoryManager.getInventoryByCity(1);
+//        if (telAvivInventory.isEmpty()) {
+//            System.out.println("No inventory found.");
+//        } else {
+//            for (InventoryItem item : telAvivInventory) {
+//                System.out.printf("%s - %d units\n", item.getProduct().getName(), item.getQuantity());
+//            }
+//        }
+//
+//        // Example: test Haifa branch
+//        System.out.println("\n=== Haifa Branch Inventory ===");
+//        List<InventoryItem> haifaInventory = inventoryManager.getInventoryByCity(2);
+//        if (haifaInventory.isEmpty()) {
+//            System.out.println("No inventory found.");
+//        } else {
+//            for (InventoryItem item : haifaInventory) {
+//                System.out.printf("%s - %d units\n", item.getProduct().getName(), item.getQuantity());
+//            }
+//        }
+//    }
 
 }
 

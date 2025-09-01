@@ -4,12 +4,12 @@ package server;
 public class OrderDetails {
     private double totalPrice;
     private int quantity;
-    private CustomerTypeEnum customerType;
+    private CustomerAbstract customer;
 
-    public OrderDetails(double totalPrice, int quantity, CustomerTypeEnum customerType) {
+    public OrderDetails(double totalPrice, int quantity, CustomerAbstract customer) {
         this.totalPrice = totalPrice;
         this.quantity = quantity;
-        this.customerType = customerType;
+        this.customer = customer;
     }
 
     public double getTotalPrice() {
@@ -20,7 +20,7 @@ public class OrderDetails {
         return quantity;
     }
 
-    public CustomerTypeEnum getCustomerType() {
-        return customerType;
+    public CustomerAbstract getCustomer() {
+        return customer;
     }
 }

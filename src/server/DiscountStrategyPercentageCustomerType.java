@@ -14,7 +14,7 @@ public class DiscountStrategyPercentageCustomerType implements StrategyDiscount 
     @Override
     public double applyDiscount(OrderDetails orderDetails) {
         double adjustedCost = orderDetails.getTotalPrice();
-        CustomerTypeEnum customerType = orderDetails.getCustomerType();
+        CustomerTypeEnum customerType = orderDetails.getCustomer().getCustomerType();
 
 
         double discount = discountPercentagePerCustomerType.getOrDefault(customerType, 0.0);

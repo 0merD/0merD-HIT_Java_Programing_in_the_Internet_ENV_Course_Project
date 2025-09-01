@@ -20,7 +20,7 @@ public class DiscountStrategyQuantityAndCustomerType implements StrategyDiscount
     @Override
     public double applyDiscount(OrderDetails orderDetails) {
         double adjustedCost = orderDetails.getTotalPrice();
-        CustomerTypeEnum customerType = orderDetails.getCustomerType();
+        CustomerTypeEnum customerType = orderDetails.getCustomer().getCustomerType();
         int quantity = orderDetails.getQuantity();
 
         // Check if the quantity meets the threshold for this customer type

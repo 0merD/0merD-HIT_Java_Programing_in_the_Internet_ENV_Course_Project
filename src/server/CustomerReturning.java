@@ -5,8 +5,8 @@ public class CustomerReturning extends CustomerAbstract{
         super(fullName, idNumber, phoneNumber, clientType);
     }
 
-    @Override
-    public void purchase(double amount) {
-
-    }
+//    @Override
+//    public void purchase(double amount) {
+//
+//    }
 }

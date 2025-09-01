@@ -14,8 +14,8 @@ public abstract class CustomerAbstract {
         this.customerType = clientType;
     }
 
-    // TODO: Simplified placeholder - later to be extended to Basket
-    public abstract void purchase(double amount);
+    // TODO: Simplified placeholder - later to be extended
+    //public abstract void purchase(OrderDetails order);
 
     public String getFullName() {
         return fullName;

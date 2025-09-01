@@ -1,5 +1,6 @@
 package server;
 
+import com.google.gson.JsonObject;
 import jdk.dynalink.Operation;
 import shared.OperationTypeEnum;
 import shared.UserType;
@@ -24,10 +25,14 @@ public class ClientLoginHandler extends Thread {
 
     //Managers:
     CustomerManager customerManager = CustomerManager.getInstance();
+    ProductsManager productsManager = new ProductsManager(new JsonProductsDataProvider());
+    InventoryManager inventoryManager = InventoryManager.getInstance();
+
     private User loggedInUser;
 
     public ClientLoginHandler(Socket socket) {
         this.socket = socket;
+
         initOperationHandlers();
     }
 
@@ -241,7 +246,7 @@ public class ClientLoginHandler extends Thread {
 
         output.println("Inventory for branch #" + branchNumber + ":");
 
-        // Use InventoryManager to get the inventory
+        // Use the InventoryManager Singleton instance to get the inventory
         InventoryManager inventoryManager = InventoryManager.getInstance();
         List<InventoryItem> inventory = inventoryManager.getInventoryByCity(branchNumber);
 
@@ -266,13 +271,44 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleExecuteSale(BufferedReader input, PrintWriter output) {
-        //Todo: get input on the items.
-        //Todo: Check branch inventory has the items, if not - throw and exception.
-        //Todo: use the discounts to determine the best option.
-        //Todo: Execute Sale: (handle Inventory)
-        //Todo: Log Sale
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
+//        try {
+//            // 1. Get input (simple example: productId, quantity pairs)
+//            output.println("Enter items in format: productId:quantity,productId:quantity");
+//            String line = input.readLine();
+//            if (line == null || line.trim().isEmpty()) {
+//                throw new IllegalArgumentException("No items provided.");
+//            }
+//
+//            Map<String, Integer> itemsRequested = parseItems(line);
+//
+//            // 2. Check inventory
+//            for (Map.Entry<String, Integer> entry : itemsRequested.entrySet()) {
+//                String productId = entry.getKey();
+//                int qty = entry.getValue();
+//
+//                if (!inventoryManager.hasStock(loggedInUser.getBranchNumber(), productId, qty)) {
+//                    throw new IllegalStateException("Not enough stock for product: " + productId);
+//                }
+//            }
+//
+//            // 3. Apply discounts
+//            OrderDetails orderDetails = buildOrderDetails(itemsRequested);
+//            double bestDiscountedPrice = applyBestDiscount(orderDetails);
+//
+//            // 4. Execute Sale (deduct inventory)
+//            for (Map.Entry<String, Integer> entry : itemsRequested.entrySet()) {
+//                inventoryManager.reduceStock(entry.getKey(), entry.getValue());
+//            }
+//
+//            // Todo: later: 5. Log sale
+//            //saleLogger.logSale(orderDetails, bestDiscountedPrice);
+//
+//            // 6. Send result back
+//            output.println("Sale executed successfully. Final price: " + bestDiscountedPrice);
+//
+//        } catch (Exception e) {
+//            output.println("Error during sale: " + e.getMessage());
+//        }
     }
 
     private void handleRequestChat(BufferedReader input, PrintWriter output) {
@@ -286,6 +322,14 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleViewProductPrice(BufferedReader input, PrintWriter output) {
+        productsManager.getAllProducts().forEach(product -> {
+            output.println(String.format(
+                    "%s %s- Price: %.2f",
+                    product.getProductStringIdentifier(),
+                    product.getName(),
+                    product.getPrice()
+            ));
+        });
         String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         output.println("Method: " + methodName);
     }
@@ -309,12 +353,12 @@ public class ClientLoginHandler extends Thread {
                 return;
             }
 
-            // Generate a new customer ID automatically
+            //Todo: Verify with avraham this works as he thought appropriate.
             String custId = "C" + (CustomerManager.getInstance().getAllCustomers().size() + 1);
 
             CustomerAbstract newCustomer = CustomerFactory.createCustomer(
-                    fullName,
                     custId,
+                    fullName,
                     phoneNumber,
                     customerType
             );
@@ -370,8 +414,14 @@ public class ClientLoginHandler extends Thread {
 
 
     private void handleLogOut(BufferedReader input, PrintWriter output) {
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
-    }
+        //loggedInUsers.remove(currentUser.getUsername());
+        loggedInUser = null;
+        output.println("You have been logged out.");
 
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -12,21 +12,33 @@
     "customerType": "New"
   },
   {
+    "fullName": "roy zimon",
+    "custId": "C7",
+    "phoneNumber": "05312341234",
+    "customerType": "New"
+  },
+  {
     "fullName": "987654321",
     "custId": "Bob Levi",
     "phoneNumber": "052-2222222",
     "customerType": "Returning"
   },
   {
-    "fullName": "Alice Cohen",
-    "custId": "123456789",
-    "phoneNumber": "050-1111111",
+    "fullName": "noam seifer",
+    "custId": "C8",
+    "phoneNumber": "05412341234",
     "customerType": "New"
   },
   {
-    "fullName": "C7",
-    "custId": "roy zimon",
-    "phoneNumber": "05312341234",
+    "fullName": "homer simpson",
+    "custId": "C9",
+    "phoneNumber": "05877654",
+    "customerType": "New"
+  },
+  {
+    "fullName": "Alice Cohen",
+    "custId": "123456789",
+    "phoneNumber": "050-1111111",
     "customerType": "New"
   },
   {
@@ -40,11 +52,5 @@
     "custId": "555555555",
     "phoneNumber": "053-3333333",
     "customerType": "Vip"
-  },
-  {
-    "fullName": "C8",
-    "custId": "noam seifer",
-    "phoneNumber": "05412341234",
-    "customerType": "New"
   }
 ]

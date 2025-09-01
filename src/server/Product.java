@@ -5,7 +5,6 @@ public  class Product {
     String description;
     double price;
     String productStringIdentifier; // "Makat" // Modified to String
-    //int serialNumber; // the specific product
 
 
     public Product() {}
@@ -49,5 +48,4 @@ public  class Product {
     public void setProductStringIdentifier(String productStringIdentifier) {
         this.productStringIdentifier = productStringIdentifier;
     }
-
 }
