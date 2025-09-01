@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 import java.io.BufferedWriter;
 
 public class ChatManager {
@@ -20,7 +21,7 @@ public class ChatManager {
     // map to hold queues of waiting clients
     private static final ConcurrentHashMap<SocketData, Queue<SocketData>> chatQueues = new ConcurrentHashMap<>();
 
-    // Map to track active chat sessions and their logs
+    // Map to track active chat sessions. Key is a participant, value is the session object.
     private static final ConcurrentHashMap<SocketData, ChatSession> activeChatSessions = new ConcurrentHashMap<>();
 
     // Paths for logging
@@ -44,10 +45,14 @@ public class ChatManager {
         }
     }
 
+    // --- MODIFIED ChatSession CLASS ---
     // Private static class to manage chat session details
-    private static class ChatSession {
+    public static class ChatSession {
+        // These two are final and represent the original chat parties for logging
         final SocketData client1;
         final SocketData client2;
+        // This vector holds all current participants, including any joined managers
+        private final Vector<SocketData> participants = new Vector<>();
         final Date startTime;
         Date endTime;
         final StringBuilder chatContent;
@@ -56,9 +61,21 @@ public class ChatManager {
         public ChatSession(SocketData client1, SocketData client2) {
             this.client1 = client1;
             this.client2 = client2;
+            this.participants.add(client1);
+            this.participants.add(client2);
             this.startTime = new Date();
             this.chatContent = new StringBuilder();
             this.saveChatLog = false;
+        }
+
+        public void addParticipant(SocketData member) {
+            if (!participants.contains(member)) {
+                participants.add(member);
+            }
+        }
+
+        public Vector<SocketData> getParticipants() {
+            return participants;
         }
 
         public void appendMessage(SocketData sender, String message) {
@@ -78,10 +95,6 @@ public class ChatManager {
         public SocketData getClient2() {
             return client2;
         }
-
-        public Date getStartTime() {
-            return startTime;
-        }
     }
 
     public static void main(String[] args) throws IOException {
@@ -95,7 +108,7 @@ public class ChatManager {
                 allConnections.add(currentSocketData);
 
                 System.out.println("Client " + currentSocketData.getClientAddress() + " connected at " + new Date());
-                currentSocketData.getOutputStream().println("Welcome! Type 'list' to see available clients, or 'listall' to see all clients.");
+                currentSocketData.getOutputStream().println("Welcome! Use 'list', 'listall', 'chat <id>', or 'join <id>'.");
 
                 try {
                     String line;
@@ -104,25 +117,10 @@ public class ChatManager {
                     }
                 } catch (Exception e) {
                     System.out.println("Client " + currentSocketData.getClientAddress() + " disconnected.");
-                    // Handle disconnections gracefully and save logs if flagged
-                    SocketData partner = currentSocketData.getChatPartner();
-                    if (partner != null) {
-                        endChatSession(currentSocketData, partner, true);
-                    }
+                    handleDisconnection(currentSocketData);
                 } finally {
                     allConnections.remove(currentSocketData);
-                    chatQueues.remove(currentSocketData); // clean up queue if any
-
-                    // Ensure chat log is saved if client disconnects
-                    ChatSession session = activeChatSessions.remove(currentSocketData);
-                    if (session != null) {
-                        session.endSession();
-                        // Always write metadata; include content only if saveChatLog was used
-                        saveSessionToLog(session);
-                        // Remove the mirrored entry if present
-                        activeChatSessions.values().removeIf(s -> s == session);
-                    }
-
+                    chatQueues.remove(currentSocketData);
                     try {
                         currentSocketData.getSocket().close();
                     } catch (IOException e) {
@@ -133,76 +131,71 @@ public class ChatManager {
         }
     }
 
+    private static void handleDisconnection(SocketData client) {
+        ChatSession session = client.getCurrentSession();
+        if (session != null) {
+            // Notify remaining members and end the session
+            session.getParticipants().remove(client); // Remove the disconnected client
+            for (SocketData member : session.getParticipants()) {
+                member.getOutputStream().println("A participant (" + client.getClientAddress() + ") has disconnected. The chat has ended.");
+            }
+            endChatSession(session, false);
+        }
+    }
+
+
     private static void handleClientInput(SocketData client, String line) {
         System.out.println(new Date() + " From client " + client.getClientAddress() + ": " + line);
+        ChatSession session = client.getCurrentSession();
 
-        if (line.equalsIgnoreCase("goodbye")) {
-            SocketData partner = client.getChatPartner();
-            if (partner != null) {
-                endChatSession(client, partner, false);
+        if (session != null) { // Client is in an active chat
+            if (line.equalsIgnoreCase("goodbye")) {
+                endChatSession(session, true);
+            } else if (line.equalsIgnoreCase("savechat")) {
+                session.saveChatLog = true;
+                client.getOutputStream().println("This chat will be saved upon completion.");
             } else {
-                client.getOutputStream().println("You are not in a private chat.");
+                sendPrivateMessage(client, line);
             }
-            return;
-        }
-
-        SocketData partner = client.getChatPartner();
-        boolean isChatActive = partner != null && partner.getChatPartner() == client;
-
-        if (isChatActive) {
-            // Handle the save chat command
-            if (line.equalsIgnoreCase("savechat")) {
-                ChatSession session = activeChatSessions.get(client);
-                if (session != null) {
-                    session.saveChatLog = true;
-                    client.getOutputStream().println("This chat will be saved upon completion or disconnection.");
-                    return;
+        } else { // Client is not in a chat
+            if (line.equalsIgnoreCase("list")) {
+                sendAvailableClients(client);
+            } else if (line.equalsIgnoreCase("listall")) {
+                sendAllClients(client);
+            } else if (line.startsWith("chat ")) {
+                String targetId = line.substring(5).trim();
+                handleChatRequest(client, targetId);
+            } else if (line.startsWith("join ")) {
+                // For testing, assume everyone is a manager
+                if (true) { // User's requirement: if(true) for testing
+                    String targetId = line.substring(5).trim();
+                    handleJoinRequest(client, targetId);
                 }
+            } else if (line.equalsIgnoreCase("yes") && findRequesterFor(client) != null) {
+                acceptChatRequest(client);
+            } else if (line.equalsIgnoreCase("no") && findRequesterFor(client) != null) {
+                rejectChatRequest(client);
+            } else {
+                client.getOutputStream().println("Command not recognized. Use: 'list', 'listall', 'chat <id>', 'join <id>'.");
             }
-            sendPrivateMessage(client, partner, line);
-        } else if (partner != null && !isChatActive) {
-            client.getOutputStream().println("Waiting for " + partner.getClientAddress() + " to accept your chat request. Please wait.");
-        } else if (line.equalsIgnoreCase("list")) {
-            sendAvailableClients(client);
-        } else if (line.equalsIgnoreCase("listall")) {
-            sendAllClients(client);
-        } else if (line.startsWith("chat ")) {
-            String targetId = line.substring(5).trim();
-            handleChatRequest(client, targetId);
-        } else if (line.equalsIgnoreCase("yes") && hasPendingRequest(client)) {
-            acceptChatRequest(client);
-        } else if (line.equalsIgnoreCase("no") && hasPendingRequest(client)) {
-            rejectChatRequest(client);
-        } else {
-            client.getOutputStream().println("Command not recognized. Use: 'list', 'listall', 'chat <id>', 'goodbye', or 'savechat' (in a private chat).");
         }
     }
 
-    // End session method now takes a flag for disconnection
-    private static void endChatSession(SocketData client1, SocketData client2, boolean isDisconnection) {
-        client1.getOutputStream().println("You have ended the chat session. You are now available for new chats.");
-        if (!isDisconnection) {
-            client2.getOutputStream().println("Your chat partner has ended the chat session. You are now available for new chats.");
+    private static void endChatSession(ChatSession session, boolean notify) {
+        session.endSession();
+        saveSessionToLog(session);
+
+        for (SocketData member : session.getParticipants()) {
+            if (notify) {
+                member.getOutputStream().println("The chat session has ended. You are now available for new chats.");
+            }
+            member.setAvailable(true);
+            member.setCurrentSession(null);
+            activeChatSessions.remove(member);
+            processNextInQueue(member);
         }
-
-        // End and save the chat metadata; include content if requested
-        ChatSession session1 = activeChatSessions.remove(client1);
-        if (session1 != null) {
-            session1.endSession();
-            saveSessionToLog(session1);
-            // Remove the mirrored mapping if necessary
-            activeChatSessions.values().removeIf(s -> s == session1);
-        }
-        activeChatSessions.remove(client2);
-
-        client1.setAvailable(true);
-        client1.setChatPartner(null);
-        client2.setAvailable(true);
-        client2.setChatPartner(null);
-
-        processNextInQueue(client1);
-        processNextInQueue(client2);
     }
+
 
     private static void sendAvailableClients(SocketData requester) {
         requester.getOutputStream().println("Available clients:");
@@ -213,70 +206,97 @@ public class ChatManager {
         }
     }
 
-    // show all clients including busy ones + queue info
     private static void sendAllClients(SocketData requester) {
         requester.getOutputStream().println("All connected clients:");
         for (SocketData sd : allConnections) {
             if (sd == requester) continue;
-
             if (sd.isAvailable()) {
                 requester.getOutputStream().println(" - " + sd.getClientAddress() + " (available)");
             } else {
                 Queue<SocketData> queue = chatQueues.get(sd);
                 int queueSize = (queue != null) ? queue.size() : 0;
-                requester.getOutputStream().println(" - " + sd.getClientAddress() + " (busy, " + queueSize + " in queue)");
+                String status = "busy";
+                if (sd.getCurrentSession() != null) {
+                    status = "in a chat";
+                } else if (sd.getPendingRequestTo() != null) {
+                    status = "pending chat with " + sd.getPendingRequestTo().getClientAddress();
+                }
+                requester.getOutputStream().println(" - " + sd.getClientAddress() + " (" + status + ", " + queueSize + " in queue)");
             }
         }
     }
 
     private static void handleChatRequest(SocketData requester, String targetId) {
-        SocketData target = null;
-        for (SocketData sd : allConnections) {
-            if (sd.getClientAddress().equals(targetId)) {
-                target = sd;
-                break;
-            }
-        }
+        SocketData target = findClientById(targetId);
         if (target == null) {
             requester.getOutputStream().println("Target not found.");
+            return;
+        }
+        if (target == requester) {
+            requester.getOutputStream().println("You cannot chat with yourself.");
             return;
         }
 
         if (target.isAvailable()) {
             requester.setAvailable(false);
             target.setAvailable(false);
-            requester.setChatPartner(target);
-            target.getOutputStream().println("Client " + requester.getClientAddress() +
-                    " wants to chat with you. Reply 'yes' or 'no'.");
+            requester.setPendingRequestTo(target);
+            target.getOutputStream().println("Client " + requester.getClientAddress() + " wants to chat with you. Reply 'yes' or 'no'.");
         } else {
             chatQueues.putIfAbsent(target, new ConcurrentLinkedQueue<>());
             Queue<SocketData> queue = chatQueues.get(target);
             queue.add(requester);
-            requester.getOutputStream().println("Client " + target.getClientAddress() +
-                    " is busy. You have been placed in queue position " + queue.size() + ".");
+            requester.getOutputStream().println("Client " + target.getClientAddress() + " is busy. You have been placed in queue position " + queue.size() + ".");
         }
     }
 
-    private static boolean hasPendingRequest(SocketData client) {
-        for (SocketData sd : allConnections) {
-            if (sd.getChatPartner() == client) {
-                return true;
+    private static void handleJoinRequest(SocketData manager, String targetId) {
+        SocketData target = findClientById(targetId);
+        if (target == null) {
+            manager.getOutputStream().println("Target client not found.");
+            return;
+        }
+        ChatSession session = target.getCurrentSession();
+        if (session == null) {
+            manager.getOutputStream().println("Target client is not in an active chat.");
+            return;
+        }
+        if (session.getParticipants().contains(manager)) {
+            manager.getOutputStream().println("You are already in this chat.");
+            return;
+        }
+
+        // Add manager to the session
+        session.addParticipant(manager);
+        manager.setCurrentSession(session);
+        manager.setAvailable(false);
+        activeChatSessions.put(manager, session);
+
+        String joinMsg = "A manager (" + manager.getClientAddress() + ") has joined the chat.";
+        manager.getOutputStream().println("You have joined the chat.");
+
+        // Notify other participants
+        for (SocketData member : session.getParticipants()) {
+            if (member != manager) {
+                member.getOutputStream().println(joinMsg);
             }
         }
-        return false;
     }
 
     private static void acceptChatRequest(SocketData replier) {
         SocketData requester = findRequesterFor(replier);
         if (requester != null) {
-            replier.setChatPartner(requester);
-            requester.getOutputStream().println("Chat request accepted. You are now in a private chat with " + replier.getClientAddress());
-            replier.getOutputStream().println("You are now in a private chat with " + requester.getClientAddress());
+            requester.setPendingRequestTo(null); // Clear the pending request
 
-            // Create and store a new chat session
             ChatSession session = new ChatSession(requester, replier);
+            requester.setCurrentSession(session);
+            replier.setCurrentSession(session);
             activeChatSessions.put(requester, session);
             activeChatSessions.put(replier, session);
+
+            String chatStartedMsg = "You are now in a private chat. Use 'goodbye' to exit, 'savechat' to save the log.";
+            requester.getOutputStream().println("Chat request accepted by " + replier.getClientAddress() + ". " + chatStartedMsg);
+            replier.getOutputStream().println("You accepted the chat request. " + chatStartedMsg);
         } else {
             replier.getOutputStream().println("You don't have a pending chat request.");
         }
@@ -287,10 +307,9 @@ public class ChatManager {
         if (requester != null) {
             requester.getOutputStream().println("Chat request rejected by " + replier.getClientAddress());
             requester.setAvailable(true);
-            requester.setChatPartner(null);
+            requester.setPendingRequestTo(null);
 
             replier.setAvailable(true);
-            replier.setChatPartner(null);
             replier.getOutputStream().println("You rejected the chat request.");
 
             processNextInQueue(replier);
@@ -301,36 +320,32 @@ public class ChatManager {
 
     private static SocketData findRequesterFor(SocketData replier) {
         for (SocketData sd : allConnections) {
-            if (sd.getChatPartner() == replier) {
+            if (sd.getPendingRequestTo() == replier) {
                 return sd;
             }
         }
         return null;
     }
 
-    private static void sendPrivateMessage(SocketData sender, SocketData receiver, String message) {
-        // Log the message
-        ChatSession session = activeChatSessions.get(sender);
-        if (session != null) {
-            session.appendMessage(sender, message);
-        }
-
-        if (receiver != null && receiver.getSocket().isConnected()) {
-            receiver.getOutputStream().println("Message from: " + sender.getClientAddress() + "@ " + message);
-        } else {
-            sender.getOutputStream().println("Your chat partner has disconnected. The chat session is ended.");
-
-            // end session gracefully on partner disconnection
-            if (session != null) {
-                session.endSession();
-                saveSessionToLog(session); // always write metadata; content if flagged
-                activeChatSessions.remove(sender);
-                activeChatSessions.values().removeIf(s -> s == session);
+    private static SocketData findClientById(String id) {
+        for (SocketData sd : allConnections) {
+            if (sd.getClientAddress().equals(id)) {
+                return sd;
             }
+        }
+        return null;
+    }
 
-            sender.setAvailable(true);
-            sender.setChatPartner(null);
-            processNextInQueue(sender);
+    private static void sendPrivateMessage(SocketData sender, String message) {
+        ChatSession session = sender.getCurrentSession();
+        if (session == null) return; // Should not happen if called correctly
+
+        session.appendMessage(sender, message);
+
+        for (SocketData receiver : session.getParticipants()) {
+            if (receiver != sender && receiver.getSocket().isConnected()) {
+                receiver.getOutputStream().println(sender.getClientAddress() + ": " + message);
+            }
         }
     }
 
@@ -341,29 +356,17 @@ public class ChatManager {
             if (nextRequester != null && allConnections.contains(nextRequester)) {
                 freedClient.setAvailable(false);
                 nextRequester.setAvailable(false);
-                nextRequester.setChatPartner(freedClient);
+                nextRequester.setPendingRequestTo(freedClient);
 
-                freedClient.getOutputStream().println("Client " + nextRequester.getClientAddress() +
-                        " wants to chat with you. Reply 'yes' or 'no'.");
-                nextRequester.getOutputStream().println("Your chat request has reached the front of the queue. Waiting for " +
-                        freedClient.getClientAddress() + " to respond.");
+                freedClient.getOutputStream().println("Client " + nextRequester.getClientAddress() + " from your queue wants to chat. Reply 'yes' or 'no'.");
+                nextRequester.getOutputStream().println("Your chat request is now active. Waiting for " + freedClient.getClientAddress() + " to respond.");
             }
         }
     }
 
-    /**
-     * Append a session entry to the single log file.
-     * Always writes metadata (participants, start, end).
-     * If session.saveChatLog == true, includes the transcript contents too.
-     */
     private static void saveSessionToLog(ChatSession session) {
-        if (session.endTime == null) {
-            session.endSession();
-        }
-
-        String timeFmt = "yyyy-MM-dd HH:mm:ss";
-        SimpleDateFormat df = new SimpleDateFormat(timeFmt);
-
+        if (session.endTime == null) session.endSession();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String c1 = sanitizeAddress(session.getClient1().getClientAddress());
         String c2 = sanitizeAddress(session.getClient2().getClientAddress());
 
@@ -380,10 +383,8 @@ public class ChatManager {
         }
         entry.append("\n");
 
-        // Thread-safe append
         synchronized (LOG_LOCK) {
-            try (BufferedWriter writer = Files.newBufferedWriter(
-                    LOG_FILE, StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
+            try (BufferedWriter writer = Files.newBufferedWriter(LOG_FILE, StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
                 writer.write(entry.toString());
             } catch (IOException e) {
                 System.err.println("Error writing chat log: " + e.getMessage());
@@ -391,16 +392,9 @@ public class ChatManager {
         }
     }
 
-    // Replace leading "/" and colons and any unsafe characters to underscores for safety
     private static String sanitizeAddress(String addr) {
         if (addr == null) return "unknown";
-        String s = addr;
-        // remove leading slash often present on getInetAddress().toString()
-        if (s.startsWith("/")) s = s.substring(1);
-        // replace characters that are problematic in logs or filenames
-        s = s.replace(':', '_');
-        // collapse any other unsafe characters
-        s = s.replaceAll("[^A-Za-z0-9._-]", "_");
-        return s;
+        String s = addr.startsWith("/") ? addr.substring(1) : addr;
+        return s.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 }
