@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
-import server.ChatManager.ChatSession; // Import the inner class
 
 public class SocketData {
     private Socket socket;
