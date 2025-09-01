@@ -34,8 +34,10 @@ public class ClientChat {
             Thread serverListener = new Thread(() -> {
                 try {
                     String serverMsg;
+
                     while ((serverMsg = fromServer.readLine()) != null) {
                         System.out.println(serverMsg);
+
                     }
                 } catch (IOException e) {
                     System.out.println("Connection to server lost.");
@@ -43,12 +45,15 @@ public class ClientChat {
             });
             serverListener.start();
 
+
             String line;
             while (true) {
                 line = consoleInputStream.nextLine();
                 if (line.equalsIgnoreCase("exit")) break;
                 toServer.println(line);
+
             }
+            // --- END OF MODIFICATION ---
 
             socket.close();
             System.out.println("Disconnected from server.");
@@ -57,6 +62,7 @@ public class ClientChat {
             System.err.println("Failed to connect to server: " + e.getMessage());
         }
     }
+
 
     public static void main(String[] args) {
         new ClientChat("localhost",1234).start();

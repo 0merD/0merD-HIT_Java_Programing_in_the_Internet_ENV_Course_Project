@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.GsonBuilder;
 import shared.UserType;
+import client.utilities.SecurityLogic;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class UserManager {
+
 
     // Path to users.json
     private static final Path JSON_FILE_PATH =  Paths.get("resources", "users.json");
@@ -116,12 +118,14 @@ public class UserManager {
                 throw new IOException("Failed to save users to JSON.", e);
             }
         }
+
     }
 
     private void loadUsersFromJson(String jsonFilePath) {
         Gson gson = new Gson();
 
         try (FileReader reader = new FileReader(jsonFilePath)) {
+
 
             Type userListType = new TypeToken<List<UserJson>>(){}.getType();
 
@@ -137,6 +141,7 @@ public class UserManager {
                         u.phoneNumber,
                         u.accountNumber,
                         u.branchNumber);
+
                 if (user != null) {
                     users.put(u.username, user);
                 }
@@ -146,6 +151,7 @@ public class UserManager {
             e.printStackTrace();
         }
     }
+
 
     private void saveUsersToJson() throws IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -172,6 +178,7 @@ public class UserManager {
         }
         else if (!user.getPassword().equals(password)) {
             authenticated = false;
+
         }
 
         return authenticated;
@@ -181,12 +188,11 @@ public class UserManager {
         return users.get(username); // returns null if key not in Map
     }
 
-
     // Helper class for JSON mapping
     private static class UserJson {
         public String username;
         public String id;
-        public String password;
+        public String password; // plain text from JSON
         public String email;
         public String phoneNumber;
         public String accountNumber;
@@ -208,4 +214,3 @@ public class UserManager {
         public UserJson() {}
     }
 }
-

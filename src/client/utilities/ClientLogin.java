@@ -14,37 +14,38 @@ public class ClientLogin {
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
             String workerId = "";
-            String forbiddenChars = "[^0-9]";
 
-            // Get worker ID with validation
+            // ✅ Get worker ID with SecurityLogic
             while (true) {
-                System.out.print("Enter your Worker ID (9 digits): ");
+                System.out.print("Enter your Worker ID: ");
                 workerId = scanner.nextLine().trim();
 
-                if (workerId.isEmpty()) {
-                    System.out.println("Worker ID cannot be empty. Try again.");
-                    continue;
-                }
-
-                if (workerId.length() != 9) {
-                    System.out.println("Worker ID must be exactly 9 digits. Try again.");
-                    continue;
-                }
-
-                if (workerId.matches(".*" + forbiddenChars + ".*")) {
-                    System.out.println("Worker ID contains invalid characters. Only digits allowed.");
+                if (!SecurityLogic.isValidWorkerId(workerId)) {
+                    System.out.println("Worker ID must be a non-empty number. Try again.");
                     continue;
                 }
                 break;
             }
 
-            // Get password
-            System.out.print("Enter your password: ");
-            String password = scanner.nextLine().trim();
+            // ✅ Get password with validation
+            String password;
+            while (true) {
+                System.out.print("Enter your password: ");
+                password = scanner.nextLine().trim();
 
-            // Send worker ID and password to server
+                if (!SecurityLogic.isValidPassword(password)) {
+                    System.out.println("Password must be at least 8 characters, include a digit and a special character.");
+                    continue;
+                }
+                break;
+            }
+
+            // 🔐 Hash before sending
+            String hashedPassword = SecurityLogic.hashPassword(password);
+
+            // Send worker ID and hashed password to server
             out.println(workerId);
-            out.println(password);
+            out.println(hashedPassword);
 
             // Read response from server
             String response = in.readLine();
