@@ -150,50 +150,20 @@ public class ClientLoginHandler extends Thread {
     // Operation handlers
     private void handleAddUser(BufferedReader input, PrintWriter output) {
         try {
-            //Todo: implement validations.
-            output.println("Enter username:");
-            String username = input.readLine();
-
-            output.println("Enter id:");
-            String id = input.readLine();
-
-            output.println("Enter password:");
-            String password = input.readLine();
-
-            output.println("Enter email:");
-            String email = input.readLine();
-
-            output.println("Enter phone number:");
-            String phone = input.readLine();
-
-            output.println("Enter account number:");
-            String accountNumber = input.readLine();
-
-            output.println("Enter branch number:");
-            int branchNumber = Integer.parseInt(input.readLine());
-
-            output.println("enter user type: admin/shiftmanager/basicworker - case insensitive");
-            String userTypeStr = input.readLine();
-            UserType userType = UserType.fromString(userTypeStr);
-
-            if (userType == null) {
-                output.println("Invalid user type.");
-            }
-
-            User newUser = new BasicWorker(username, id, password, email, phone, accountNumber, branchNumber, userType);
-
+            User newUser = ValidationsService.requestAndValidateUser(input, output);
             UserManager.getInstance().addUser(newUser);
             output.println("User added successfully.");
-
+        } catch (IllegalArgumentException e) {
+            output.println("Validation error: " + e.getMessage());
         } catch (IOException e) {
             output.println("Failed to add user: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            output.println("Invalid number entered for branch.");
         }
     }
 
+
+
+
     private void handleDeleteUser(BufferedReader input, PrintWriter output) {
-        //Todo: implement validations.
         try {
             output.println("Enter username of the user to delete:");
             String username = input.readLine().trim();
@@ -214,7 +184,7 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleModifyUserRole(BufferedReader input, PrintWriter output) {
-        //Todo: implement validations.
+     //verifier quon met un bon type de worker
         try {
             output.println("Enter the username of the user to modify:");
             String username = input.readLine();
@@ -335,48 +305,18 @@ public class ClientLoginHandler extends Thread {
     }
 
     private void handleAddCustomer(BufferedReader input, PrintWriter output) {
-
         try {
-            output.println("Enter customer full name:");
-            String fullName = input.readLine().trim();
-
-            output.println("Enter customer phone number:");
-            String phoneNumber = input.readLine().trim();
-
-            output.println("Enter customer type (New / Returning / Vip):");
-            String typeInput = input.readLine().trim();
-            CustomerTypeEnum customerType;
-            try {
-                customerType = CustomerTypeEnum.valueOf(typeInput);
-            } catch (IllegalArgumentException e) {
-                output.println("Invalid customer type. Aborting.");
-                return;
+            CustomerAbstract newCustomer = ValidationsService.requestAndValidateCustomer(input, output);
+            if (newCustomer != null) {
+                customerManager.addCustomer(newCustomer);
+                output.println("Customer added successfully! ID: " + newCustomer.getCustId());
             }
-
-            //Todo: Verify with avraham this works as he thought appropriate.
-            String custId = "C" + (CustomerManager.getInstance().getAllCustomers().size() + 1);
-
-            CustomerAbstract newCustomer = CustomerFactory.createCustomer(
-                    custId,
-                    fullName,
-                    phoneNumber,
-                    customerType
-            );
-
-            customerManager.addCustomer(newCustomer);
-
-            output.println("Customer added successfully! ID: " + custId);
-
-
-            String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-            output.println("Method: " + methodName);
-
         } catch (Exception e) {
             e.printStackTrace();
             output.println("Failed to add customer: " + e.getMessage());
         }
-
     }
+
 
     private void handleJoinExistingChat(BufferedReader input, PrintWriter output) {
         String methodName = new Object(){}.getClass().getEnclosingMethod().getName();

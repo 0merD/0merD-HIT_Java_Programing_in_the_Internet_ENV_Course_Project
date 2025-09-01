@@ -1,0 +1,11 @@
+[
+  {
+    "id": "enrico macias",
+    "password": "HelloWorld@124",
+    "email": "enrico@gmail.com",
+    "phoneNumber": "0586476921",
+    "accountNumber": "12345",
+    "branchNumber": 1,
+    "userType": "BasicWorker"
+  }
+]

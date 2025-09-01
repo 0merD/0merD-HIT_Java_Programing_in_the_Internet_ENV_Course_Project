@@ -8,6 +8,36 @@
     "userType": "Admin"
   },
   {
+    "username": "kevin",
+    "id": "123456",
+    "password": "theBird",
+    "email": "kevin@mail.com",
+    "phoneNumber": "054896567",
+    "accountNumber": "123456",
+    "branchNumber": 2,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "noam1",
+    "id": "1234",
+    "password": "12345",
+    "email": "lou@mail.com",
+    "phoneNumber": "058465875",
+    "accountNumber": "123456",
+    "branchNumber": 1,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "momo",
+    "id": "12345",
+    "password": "password",
+    "email": "momo@mail.com",
+    "phoneNumber": "0548963215",
+    "accountNumber": "12345",
+    "branchNumber": 1,
+    "userType": "ShiftManager"
+  },
+  {
     "username": "avraham",
     "id": "2",
     "password": "abc",
