@@ -1,6 +1,5 @@
 package server;
 
-// This class holds the data required to calculate discounts within the DiscountStrategyInterface
 public class OrderDetails {
     private double totalPrice;
     private int quantity;

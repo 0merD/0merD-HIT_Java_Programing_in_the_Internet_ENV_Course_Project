@@ -1,56 +1,38 @@
 [
   {
-    "fullName": "555555555",
-    "custId": "Charlie Gold",
-    "phoneNumber": "053-3333333",
+    "custId": "C001",
+    "fullName": "Noam Seifer",
+    "phoneNumber": "0501234567",
+    "customerType": "New"
+  },
+  {
+    "custId": "C002",
+    "fullName": "Lior Cohen",
+    "phoneNumber": "0512345678",
     "customerType": "Vip"
   },
   {
-    "fullName": "123456789",
-    "custId": "Alice Cohen",
-    "phoneNumber": "050-1111111",
-    "customerType": "New"
-  },
-  {
-    "fullName": "roy zimon",
-    "custId": "C7",
-    "phoneNumber": "05312341234",
-    "customerType": "New"
-  },
-  {
-    "fullName": "987654321",
-    "custId": "Bob Levi",
-    "phoneNumber": "052-2222222",
+    "custId": "C003",
+    "fullName": "Yael Levi",
+    "phoneNumber": "0523456789",
     "customerType": "Returning"
   },
   {
-    "fullName": "noam seifer",
-    "custId": "C8",
-    "phoneNumber": "05412341234",
+    "custId": "C004",
+    "fullName": "David Katz",
+    "phoneNumber": "0534567890",
     "customerType": "New"
   },
   {
-    "fullName": "homer simpson",
-    "custId": "C9",
-    "phoneNumber": "05877654",
-    "customerType": "New"
-  },
-  {
-    "fullName": "Alice Cohen",
-    "custId": "123456789",
-    "phoneNumber": "050-1111111",
-    "customerType": "New"
-  },
-  {
-    "fullName": "Bob Levi",
-    "custId": "987654321",
-    "phoneNumber": "052-2222222",
-    "customerType": "Returning"
-  },
-  {
-    "fullName": "Charlie Gold",
-    "custId": "555555555",
-    "phoneNumber": "053-3333333",
+    "custId": "C005",
+    "fullName": "Maya Ben-David",
+    "phoneNumber": "0545678901",
     "customerType": "Vip"
+  },
+  {
+    "custId": "C006",
+    "fullName": "Elior Mizrahi",
+    "phoneNumber": "0556789012",
+    "customerType": "Returning"
   }
 ]

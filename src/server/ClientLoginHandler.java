@@ -1,7 +1,5 @@
 package server;
 
-import com.google.gson.JsonObject;
-import jdk.dynalink.Operation;
 import shared.OperationTypeEnum;
 import shared.UserType;
 
@@ -27,6 +25,7 @@ public class ClientLoginHandler extends Thread {
     CustomerManager customerManager = CustomerManager.getInstance();
     ProductsManager productsManager = new ProductsManager(new JsonProductsDataProvider());
     InventoryManager inventoryManager = InventoryManager.getInstance();
+    ChatManager chatManager = new ChatManager();
 
     private User loggedInUser;
 
@@ -149,6 +148,7 @@ public class ClientLoginHandler extends Thread {
 
     // Operation handlers
     private void handleAddUser(BufferedReader input, PrintWriter output) {
+
         try {
             //Todo: implement validations.
             output.println("Enter username:");
@@ -191,6 +191,11 @@ public class ClientLoginHandler extends Thread {
             output.println("Invalid number entered for branch.");
         }
     }
+
+    //Todo: merge with Ilan's Validations Service.
+//    private void RequestNewUserData() {
+//        ValidationsService.
+//    }
 
     private void handleDeleteUser(BufferedReader input, PrintWriter output) {
         //Todo: implement validations.
@@ -257,58 +262,61 @@ public class ClientLoginHandler extends Thread {
 
         // Display the inventory items
         for (InventoryItem item : inventory) {
-            Product p = item.getProduct();
-            output.println(String.format(
-                    "%s (%s) - Price: %.2f - Quantity: %d",
-                    p.getName(),
-                    p.getProductStringIdentifier(),
-                    p.getPrice(),
-                    item.getQuantity()
-            ));
+            Product p = ProductsCatalog.getProduct(item.getProductIdentifier());
+            if (p == null) {
+                output.println(String.format(
+                        "Unknown product (%s) - Quantity: %d",
+                        item.getProductIdentifier(),
+                        item.getQuantity()
+                ));
+            } else {
+                output.println(String.format(
+                        "%s (%s) - Price: %.2f - Quantity: %d",
+                        p.getName(),
+                        p.getProductIdentifier(),
+                        p.getPrice(),
+                        item.getQuantity()
+                ));
+            }
         }
-        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
-        output.println("Method: " + methodName);
+
     }
 
     private void handleExecuteSale(BufferedReader input, PrintWriter output) {
-//        try {
-//            // 1. Get input (simple example: productId, quantity pairs)
-//            output.println("Enter items in format: productId:quantity,productId:quantity");
-//            String line = input.readLine();
-//            if (line == null || line.trim().isEmpty()) {
-//                throw new IllegalArgumentException("No items provided.");
-//            }
-//
-//            Map<String, Integer> itemsRequested = parseItems(line);
-//
-//            // 2. Check inventory
-//            for (Map.Entry<String, Integer> entry : itemsRequested.entrySet()) {
-//                String productId = entry.getKey();
-//                int qty = entry.getValue();
-//
-//                if (!inventoryManager.hasStock(loggedInUser.getBranchNumber(), productId, qty)) {
-//                    throw new IllegalStateException("Not enough stock for product: " + productId);
-//                }
-//            }
-//
-//            // 3. Apply discounts
-//            OrderDetails orderDetails = buildOrderDetails(itemsRequested);
-//            double bestDiscountedPrice = applyBestDiscount(orderDetails);
-//
-//            // 4. Execute Sale (deduct inventory)
-//            for (Map.Entry<String, Integer> entry : itemsRequested.entrySet()) {
-//                inventoryManager.reduceStock(entry.getKey(), entry.getValue());
-//            }
-//
-//            // Todo: later: 5. Log sale
-//            //saleLogger.logSale(orderDetails, bestDiscountedPrice);
-//
-//            // 6. Send result back
-//            output.println("Sale executed successfully. Final price: " + bestDiscountedPrice);
-//
-//        } catch (Exception e) {
-//            output.println("Error during sale: " + e.getMessage());
-//        }
+
+        //TODO: For simplicity currently implemented using try catch simple structure.
+        try {
+
+            // Pick a customer (for now, just first existing)
+            CustomerAbstract customer = CustomerManager.getInstance().getAllCustomers().get(1);
+
+            int branchNumber = loggedInUser.getBranchNumber();
+
+            output.println("Enter product ID:");
+            String productId = input.readLine();
+
+            output.println("Enter quantity:");
+            int quantity = Integer.parseInt(input.readLine());
+
+            SalesRequest request = new SalesRequest();
+            request.setBranchNumber(branchNumber);
+            request.setProductId(productId);
+            request.setQuantity(quantity);
+            request.setCustomer(customer);
+
+
+            SalesManager salesManager = SalesManager.getInstance();
+            SalesResult result = salesManager.processSale(request);
+
+            output.println("Sale success: " + result.isSuccess());
+            output.println("Message: " + result.getMessage());
+            output.println("Original price: " + result.getOriginalPrice());
+            output.println("Discount applied: " + result.getDiscountApplied());
+            output.println("Final price: " + result.getFinalPrice());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void handleRequestChat(BufferedReader input, PrintWriter output) {
@@ -325,7 +333,7 @@ public class ClientLoginHandler extends Thread {
         productsManager.getAllProducts().forEach(product -> {
             output.println(String.format(
                     "%s %s- Price: %.2f",
-                    product.getProductStringIdentifier(),
+                    product.getProductIdentifier(),
                     product.getName(),
                     product.getPrice()
             ));

@@ -7,6 +7,7 @@ public abstract class CustomerAbstract {
     private String phoneNumber;
     private CustomerTypeEnum customerType;
 
+
     public CustomerAbstract(String fullName, String idNumber, String phoneNumber, CustomerTypeEnum clientType) {
         this.fullName = fullName;
         this.custId = idNumber;
@@ -14,8 +15,7 @@ public abstract class CustomerAbstract {
         this.customerType = clientType;
     }
 
-    // TODO: Simplified placeholder - later to be extended
-    //public abstract void purchase(OrderDetails order);
+    public abstract double applyBestDiscount(OrderDetails orderDetails);
 
     public String getFullName() {
         return fullName;

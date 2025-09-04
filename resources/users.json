@@ -1,23 +1,25 @@
 [
   {
     "username": "enrico",
-    "id": "1",
+    "id": "U001",
     "password": "pass",
     "email": "encrico@gmail.com",
     "branchNumber": 1,
+    "accountNumber": "9999",
     "userType": "Admin"
   },
   {
     "username": "avraham",
-    "id": "2",
+    "id": "U002",
     "password": "abc",
     "email": "avraham@gmail.com",
-    "branchNumber": 2,
+    "branchNumber": 3,
+    "accountNumber": "9999",
     "userType": "ShiftManager"
   },
   {
     "username": "basic",
-    "id": "23",
+    "id": "U003",
     "password": "1234",
     "email": "basic@gmail.com",
     "phoneNumber": "0547738844",
@@ -27,7 +29,7 @@
   },
   {
     "username": "noam",
-    "id": "1234",
+    "id": "U004",
     "password": "noam1234",
     "email": "noamseifer@gmail.com",
     "phoneNumber": "0547739944",

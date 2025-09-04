@@ -1,29 +1,8 @@
 [
-  {
-    "product": {
-      "productStringIdentifier": "C2001",
-      "name": "Dress",
-      "description": "Summer floral dress",
-      "price": 75.0
-    },
-    "quantity": 30
-  },
-  {
-    "product": {
-      "productStringIdentifier": "C2002",
-      "name": "Sweater",
-      "description": "Wool blend pullover sweater",
-      "price": 55.0
-    },
-    "quantity": 25
-  },
-  {
-    "product": {
-      "productStringIdentifier": "C2003",
-      "name": "Sneakers",
-      "description": "Casual unisex sneakers",
-      "price": 90.0
-    },
-    "quantity": 40
-  }
+  { "productIdentifier": "P001", "quantity": 120 },
+  { "productIdentifier": "P002", "quantity": 60 },
+  { "productIdentifier": "P003", "quantity": 40 },
+  { "productIdentifier": "P004", "quantity": 80 },
+  { "productIdentifier": "P005", "quantity": 150 },
+  { "productIdentifier": "P006", "quantity": 30 }
 ]

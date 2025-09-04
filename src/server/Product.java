@@ -1,16 +1,16 @@
 package server;
 
 public  class Product {
-    String name;
-    String description;
-    double price;
-    String productStringIdentifier; // "Makat" // Modified to String
 
+    private String name;
+    private String description;
+    private double price;
+    private String productIdentifier; // "Makat" // Modified to String
 
     public Product() {}
 
     public Product(String catalogStringIdentifier, String name, String description, double price) {
-        this.productStringIdentifier = catalogStringIdentifier;
+        this.productIdentifier = catalogStringIdentifier;
         this.name = name;
         this.description = description;
         this.price = price;
@@ -21,31 +21,33 @@ public  class Product {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public double getPrice() {
+        return price;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getProductIdentifier() {
+        return productIdentifier;
     }
 
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public String getProductStringIdentifier() {
-        return productStringIdentifier;
-    }
-
-    public void setProductStringIdentifier(String productStringIdentifier) {
-        this.productStringIdentifier = productStringIdentifier;
-    }
+    //Todo: verify with Roy this is ok.
+//    public void setProductStringIdentifier(String productStringIdentifier) {
+//        this.productStringIdentifier = productStringIdentifier;
+//    }
+//
+//    public void setPrice(double price) {
+//        this.price = price;
+//    }
+//
+//
+//    public void setDescription(String description) {
+//        this.description = description;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 }

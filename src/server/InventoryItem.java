@@ -1,26 +1,31 @@
 package server;
 
 public class InventoryItem {
-    private Product product;
+    private String productIdentifier;
     private int quantity;
 
     public InventoryItem() {}
 
-    public InventoryItem(Product product, int quantity) {
-        if (product == null) {
-            throw new IllegalArgumentException("Product cannot be null");
+    public InventoryItem(String productIdentifier, int quantity) {
+
+        if (!ProductsCatalog.existsProductIdentifier(productIdentifier)) {
+            throw new IllegalArgumentException("Invalid product identifier: " + productIdentifier);
         }
 
         if (quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative");
         }
 
-        this.product = product;
+        this.productIdentifier = productIdentifier;
         this.quantity = quantity;
     }
 
+    public String getProductIdentifier() {
+        return productIdentifier;
+    }
+
     public Product getProduct() {
-        return product;
+        return ProductsCatalog.getProduct(productIdentifier);
     }
 
     public int getQuantity() {
@@ -35,16 +40,18 @@ public class InventoryItem {
         quantity += amount;
     }
 
-    public void removeQuantity(int amount) throws InsufficientQuantityException {
-        if (amount <= 0) {
+    public void reduceQuantity(int qtyToReduce) throws InsufficientQuantityException {
+
+        if (qtyToReduce <= 0) {
             throw new IllegalArgumentException("Amount to remove must be positive");
         }
-        if (amount > quantity) {
+
+        if (qtyToReduce > quantity) {
             throw new InsufficientQuantityException(
-                String.format("Cannot remove %d from inventory; only %d available", amount, quantity)
+                String.format("Cannot remove %d from inventory; only %d available", qtyToReduce, quantity)
             );
         }
-        quantity -= amount;
+        quantity -= qtyToReduce;
     }
 
 

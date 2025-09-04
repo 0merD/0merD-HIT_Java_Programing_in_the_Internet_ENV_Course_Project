@@ -6,31 +6,38 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InventoryManager {
+    private final String INVENTORY_DIR = "resources/inventories/";
+
     // <BranchNumber, BranchFileName>
     private static final Map<Integer, String> branchNumberToCity = new HashMap<>();
 
     private static InventoryManager instance; // Singleton Instance
 
-    // <BranchNumber, List<InventoryItems>
-    private final Map<Integer, List<InventoryItem>> inventoryCache = new HashMap<>();
-
-    private final Map<String, Object> fileLocks = new HashMap<>(); // Have a separate lock for each branch json file.
-
-    private final String INVENTORY_DIR = "resources/inventories/";
+    // lock objects
+    private final Map<String, Object> fileLocks = new ConcurrentHashMap<>();
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+    // Initialize the branches and the concurrency locks
     private InventoryManager() {
-        // was put here for simplicity.
         branchNumberToCity.put(1, "telaviv");
         branchNumberToCity.put(2, "haifa");
+        branchNumberToCity.put(3, "jerusalem");
+
+        for (Map.Entry<Integer, String> entry : branchNumberToCity.entrySet()) {
+            String city = entry.getValue();
+            fileLocks.put(city, new Object());
+        }
     }
 
+    // Synchronized here prevents creating two instances of this class.
     public static synchronized InventoryManager getInstance() {
         if (instance == null) {
             instance = new InventoryManager();
@@ -42,61 +49,104 @@ public class InventoryManager {
         String cityName = branchNumberToCity.get(branchNumber);
         File file = new File(INVENTORY_DIR + cityName + ".json");
 
-        if (!file.exists()) return new ArrayList<>();
+        if (!file.exists()) {
+            throw new RuntimeException("Inventory file not found: " + file.getPath());
+        }
 
         try (FileReader reader = new FileReader(file)) {
-            Type listType = new TypeToken<List<InventoryItem>>(){}.getType();
-
+            Type listType = new TypeToken<List<InventoryItem>>() {}.getType();
             return gson.fromJson(reader, listType);
-
         } catch (IOException e) {
             e.printStackTrace();
-            return new ArrayList<>();
+            throw new RuntimeException("Error reading inventory file: " + file.getPath(), e);
         }
     }
 
-    public boolean hasStock(Integer branchNumber, String productId, int qty) {
+    public void reduceStock(Integer branchNumber, String productId, int qty)
+            throws IOException, InventoryItem.InsufficientQuantityException, IllegalArgumentException {
+
+        if (!ProductsCatalog.existsProductIdentifier(productId)) {
+            throw new IllegalArgumentException(productId + " doesn't exist");
+        }
+
+        String city = branchNumberToCity.get(branchNumber);
+
+        if (city == null) {
+            throw new IllegalArgumentException("Unknown branch number: " + branchNumber);
+        }
+
+        String path = INVENTORY_DIR + city + ".json";
+
+        synchronized (getBranchLock(city)) {
+            List<InventoryItem> inventory = getInventoryByCity(branchNumber);
+
+            for (InventoryItem item : inventory) {
+                if (item.getProductIdentifier().equals(productId)) {
+
+                    // should i wrap this with try - catch?
+                    // This may throw IllegalArgumentException or InsufficientQuantityException
+                    item.reduceQuantity(qty);
+
+                    try (FileWriter writer = new FileWriter(path)) {
+                        gson.toJson(inventory, writer);
+                    }
+
+                    return;
+                }
+            }
+        }
+    }
+
+
+
+    public boolean hasSufficientStock(Integer branchNumber, String productId, int qty) {
+        boolean hasSufficientStock = false;
         List<InventoryItem> inventory = getInventoryByCity(branchNumber);
 
-        // Search for the product
         for (InventoryItem item : inventory) {
-            if (item.getProduct().productStringIdentifier.equals(productId)) {
-                return item.getQuantity() >= qty;
+            if (item.getProductIdentifier().equals(productId)) {
+                hasSufficientStock =  item.getQuantity() >= qty;
+                break;
             }
         }
 
-        // Product not found in inventory
-        return false;
-
-
+        return hasSufficientStock;
     }
 
-    // TODO: Delete Main for testing purposes only
-//    public static void main(String[] args) {
-//        InventoryManager inventoryManager = InventoryManager.getInstance();
-//
-//        // Example: test Tel Aviv branch
-//        System.out.println("=== Tel Aviv Branch Inventory ===");
-//        List<InventoryItem> telAvivInventory = inventoryManager.getInventoryByCity(1);
-//        if (telAvivInventory.isEmpty()) {
-//            System.out.println("No inventory found.");
-//        } else {
-//            for (InventoryItem item : telAvivInventory) {
-//                System.out.printf("%s - %d units\n", item.getProduct().getName(), item.getQuantity());
-//            }
-//        }
-//
-//        // Example: test Haifa branch
-//        System.out.println("\n=== Haifa Branch Inventory ===");
-//        List<InventoryItem> haifaInventory = inventoryManager.getInventoryByCity(2);
-//        if (haifaInventory.isEmpty()) {
-//            System.out.println("No inventory found.");
-//        } else {
-//            for (InventoryItem item : haifaInventory) {
-//                System.out.printf("%s - %d units\n", item.getProduct().getName(), item.getQuantity());
-//            }
-//        }
-//    }
+    public void addStock(Integer branchNumber, String productId, int qty) throws IOException {
+        if (qty <= 0) throw new IllegalArgumentException("Quantity must be positive");
 
+        String city = branchNumberToCity.get(branchNumber);
+        String path = getBranchFilePath(branchNumber);
+
+        synchronized (getBranchLock(city)) {
+            List<InventoryItem> inventory = getInventoryByCity(branchNumber);
+            boolean found = false;
+
+            for (InventoryItem item : inventory) {
+                if (item.getProductIdentifier().equals(productId)) {
+                    item.addQuantity(qty);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                inventory.add(new InventoryItem(productId, qty));
+            }
+
+            try (FileWriter writer = new FileWriter(path)) {
+                gson.toJson(inventory, writer);
+            }
+        }
+    }
+
+    private Object getBranchLock(String city) {
+        return fileLocks.get(city);
+    }
+
+    private String getBranchFilePath(Integer branchNumber) {
+        return  INVENTORY_DIR + branchNumberToCity.get(branchNumber);
+    }
 }
 

@@ -9,6 +9,7 @@ public class Server {
     private static final int PORT = 1234;
     private static boolean isServerRunning = true;
 
+    //Todo: find a way to remove this line.
     private static UserManager userManagerSingletonInstance = UserManager.getInstance(); // initializes the UserManager singleton Instance.
 
     public static void main(String[] args) throws IOException {

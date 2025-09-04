@@ -1,10 +1,8 @@
 package server;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -55,7 +53,7 @@ public class JsonProductsDataProvider implements ProductsDataProvider {
         Product product = null;
 
         for (Product p : products) {
-            if (p.getProductStringIdentifier().equals(productId)) {
+            if (p.getProductIdentifier().equals(productId)) {
                 product = p;
                 break;
             }
@@ -80,7 +78,7 @@ public class JsonProductsDataProvider implements ProductsDataProvider {
         boolean isSuccesfullUpdate = false;
 
         for (int i = 0; i < products.size(); i++) {
-            if (products.get(i).getProductStringIdentifier().equals(product.getProductStringIdentifier())) {
+            if (products.get(i).getProductIdentifier().equals(product.getProductIdentifier())) {
                 products.set(i, product);
                 saveProducts();
                 isSuccesfullUpdate =  true;
@@ -93,7 +91,7 @@ public class JsonProductsDataProvider implements ProductsDataProvider {
 
     @Override
     public boolean deleteProduct(String productId) {
-        boolean removed = products.removeIf(p -> p.getProductStringIdentifier().equals(productId));
+        boolean removed = products.removeIf(p -> p.getProductIdentifier().equals(productId));
         if (removed) {
             saveProducts();
         }
