@@ -1,211 +1,419 @@
 package server;
 
-import com.google.gson.GsonBuilder;
+import shared.OperationTypeEnum;
 import shared.UserType;
 
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
-public class UserManager {
+public class ClientLoginHandler extends Thread {
+    private final Socket socket;
 
-    // Path to users.json
-    private static final Path JSON_FILE_PATH =  Paths.get("resources", "users.json");
-    // Singleton
-    private static UserManager instance;
-
-    // <Key, Value> = <username, User>
-    private Map<String, User> users = new HashMap<>();
-
-    private final Object lockUsersFile = new Object();
+    // Note to myself - like Action in C#
+    private final Map<OperationTypeEnum, BiConsumer<BufferedReader, PrintWriter>> operationHandlersMap = new EnumMap<>(OperationTypeEnum.class);
 
 
-    private UserManager() {
-        loadUsersFromJson(JSON_FILE_PATH.toString());
-    }
+    //Managers:
+    CustomerManager customerManager = CustomerManager.getInstance();
+    ProductsManager productsManager = new ProductsManager(new JsonProductsDataProvider());
+    InventoryManager inventoryManager = InventoryManager.getInstance();
+    ChatManager chatManager = new ChatManager();
 
-    public static UserManager getInstance() {
-        if (instance == null) {
-            instance = new UserManager();
-        }
+    private User loggedInUser;
 
-        return instance;
-    }
+    public ClientLoginHandler(Socket socket) {
+        this.socket = socket;
 
-    public boolean addUser(User user) throws IllegalArgumentException, IOException {
-        if (user == null || user.getUsername() == null || user.getUsername().isEmpty()) {
-            throw new IllegalArgumentException("Invalid user object or username.");
-        }
-        if (user.getUserType() == null) {
-            throw new IllegalArgumentException("User role cannot be null.");
-        }
-
-        synchronized (lockUsersFile) {
-            if (users.containsKey(user.getUsername())) {
-                throw new IllegalArgumentException("User with username '" + user.getUsername() + "' already exists.");
-            }
-
-            users.put(user.getUsername(), user);
-
-            try {
-                saveUsersToJson();
-                return true;
-            } catch (IOException e) {
-                users.remove(user.getUsername()); // rollback
-                throw new IOException("Failed to save user to JSON.", e);
-            }
-        }
-    }
-
-    public boolean deleteUser(String username) throws IllegalArgumentException, IOException {
-        if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Invalid username.");
-        }
-
-        synchronized (lockUsersFile) {
-            User removed = users.remove(username);
-            if (removed == null) {
-                throw new IllegalArgumentException("User with username '" + username + "' does not exist.");
-            }
-
-            try {
-                saveUsersToJson(); // persist the change
-                return true;
-            } catch (IOException e) {
-                users.put(username, removed); // rollback
-                throw new IOException("Failed to save users to JSON.", e);
-            }
-        }
+        initOperationHandlers();
     }
 
 
-    public boolean modifyUserRole(String username, UserType newRole) throws IllegalArgumentException, IOException {
-        if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Invalid username.");
-        }
-        if (newRole == null) {
-            throw new IllegalArgumentException("User role cannot be null.");
-        }
+    private void initOperationHandlers() {
+        operationHandlersMap.put(OperationTypeEnum.ADD_USER, this::handleAddUser);
+        operationHandlersMap.put(OperationTypeEnum.DELETE_USER, this::handleDeleteUser);
+        operationHandlersMap.put(OperationTypeEnum.MODIFY_USER_ROLE, this::handleModifyUserRole);
 
-        synchronized (lockUsersFile) {
-            User user = users.get(username);
-            if (user == null) {
-                throw new IllegalArgumentException("User with username '" + username + "' does not exist.");
+        operationHandlersMap.put(OperationTypeEnum.VIEW_CURRENT_OPEN_CHATS, this::handleViewCurrentOpenChats);
+        operationHandlersMap.put(OperationTypeEnum.JOIN_EXISTING_CHAT, this::handleJoinExistingChat);
+        operationHandlersMap.put(OperationTypeEnum.VIEW_AVAILABLE_TO_CHAT, this::handleViewAvailableToChat);
+        operationHandlersMap.put(OperationTypeEnum.REQUEST_CHAT, this::handleRequestChat);
+
+        operationHandlersMap.put(OperationTypeEnum.VIEW_BRANCH_INVENTORY, this::handleViewBranchInventory);
+        operationHandlersMap.put(OperationTypeEnum.VIEW_ALL_CUSTOMERS, this::handleViewAllCustomers);
+        operationHandlersMap.put(OperationTypeEnum.VIEW_PRODUCT_PRICE, this::handleViewProductPrice);
+        operationHandlersMap.put(OperationTypeEnum.ADD_CUSTOMER, this::handleAddCustomer);
+        operationHandlersMap.put(OperationTypeEnum.EXECUTE_SALE, this::handleExecuteSale);
+        operationHandlersMap.put(OperationTypeEnum.LOGOUT, this::handleLogOut);
+    }
+
+
+
+    public void run() {
+        try (
+                BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
+        ) {
+
+            loggedInUser =  authenticateClient(input, output);
+
+            if (loggedInUser == null) {
+                output.println("Authentication failed.");
+                socket.close();
+                return;
             }
 
-            UserType oldRole = user.getUserType();
-            user.setUserType(newRole);
+            runUserSession(loggedInUser, input, output);
 
-            try {
-                saveUsersToJson(); // persist the change
-                return true;
-            } catch (IOException e) {
-                user.setUserType(oldRole); // rollback
-                throw new IOException("Failed to save users to JSON.", e);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void runUserSession(User loggedInUser, BufferedReader input, PrintWriter output) throws IOException {
+
+        UserType loggedInUserType = loggedInUser.getUserType();
+        output.println(String.format("Welcome %s. You are Logged in as %s", loggedInUser, loggedInUserType));
+
+        OperationTypeEnum[] allowedOps = Arrays.stream(OperationTypeEnum.values())
+                .filter(op -> op.getRequiredUserType().contains(loggedInUserType))
+                .toArray(OperationTypeEnum[]::new);
+
+        boolean isUserMakingRequests = true;
+
+        while (isUserMakingRequests) {
+            OperationTypeEnum selectedOperation = selectOperation(input, output, allowedOps);
+
+            if (selectedOperation == null) {
+                continue; // prompt again
+            }
+
+            handleOperation(selectedOperation, input, output); // perform the requested operation
+
+            if (selectedOperation == OperationTypeEnum.LOGOUT) {
+                isUserMakingRequests = false;
             }
         }
     }
 
-    private void loadUsersFromJson(String jsonFilePath) {
-        Gson gson = new Gson();
+    private User authenticateClient(BufferedReader input, PrintWriter output) throws IOException {
+        output.println("Enter username:");
+        String username = input.readLine();
+        output.println("Enter password:");
+        String password = input.readLine();
 
-        try (FileReader reader = new FileReader(jsonFilePath)) {
+        if (!UserManager.authenticate(username, password)) {
+            output.println("Authentication failed.");
+            System.out.println("Client authentication failed.");
+            return null;
+        }
 
-            Type userListType = new TypeToken<List<UserJson>>(){}.getType();
+        return UserManager.getInstance().getUserByUserName(username);
+    }
 
-            List<UserJson> userList = gson.fromJson(reader, userListType);
+    private OperationTypeEnum selectOperation(BufferedReader input, PrintWriter output, OperationTypeEnum[] allowedOps) throws IOException {
+        output.println("Select an operation: (enter number)");
 
-            for (UserJson u : userList) {
-                User user = UserFactory.createUser(
-                        u.username,
-                        u.id,
-                        u.userType,
-                        u.password,
-                        u.email,
-                        u.phoneNumber,
-                        u.accountNumber,
-                        u.branchNumber);
-                if (user != null) {
-                    users.put(u.username, user);
-                }
+        for (int i = 0; i < allowedOps.length; i++) {
+            output.println((i + 1) + ". " + allowedOps[i].getDescription());
+        }
+
+        try {
+            int choice = Integer.parseInt(input.readLine());
+            return allowedOps[choice - 1];
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            output.println("Please enter a valid operation number.");
+            return null;
+        }
+    }
+
+    // Generic operation handler to run the selected operation handler
+    private void handleOperation(OperationTypeEnum operation,BufferedReader input, PrintWriter output) {
+        BiConsumer<BufferedReader, PrintWriter> handler = operationHandlersMap.get(operation);
+        if (handler != null) {
+            handler.accept(input, output);
+        } else {
+            output.println("Unknown operation.");
+        }
+    }
+
+
+    // Operation handlers
+    private void handleAddUser(BufferedReader input, PrintWriter output) {
+        //TODO: test works
+        try {
+            User newUser = ValidationsService.requestAndValidateUser(input, output);
+            UserManager.getInstance().addUser(newUser);
+            output.println("User added successfully.");
+        } catch (IllegalArgumentException e) {
+            output.println("Validation error: " + e.getMessage());
+        } catch (IOException e) {
+            output.println("Failed to add user: " + e.getMessage());
+        }
+    }
+
+
+    private void handleDeleteUser(BufferedReader input, PrintWriter output) {
+        //Todo: implement validations.
+        try {
+            output.println("Enter username of the user to delete:");
+            String username = input.readLine().trim();
+
+            User userToDelete = UserManager.getInstance().getUserByUserName(username);
+
+            if (userToDelete == null) {
+                output.println("User not found.");
+                return;
             }
 
+            String userNameStrOfUserToDelete = userToDelete.getUsername();
+            UserManager.getInstance().deleteUser(userNameStrOfUserToDelete);
+            output.println("User deleted successfully.");
+
+        } catch (IOException e) {
+            output.println("Failed to delete user: " + e.getMessage());
+        }
+    }
+
+    private void handleModifyUserRole(BufferedReader input, PrintWriter output) {
+        //Todo: implement validations.
+        try {
+            output.println("Enter the username of the user to modify:");
+            String username = input.readLine();
+
+            output.println("Enter new user type (admin/shiftmanager/basicworker) - case insensitive:");
+            String roleStr = input.readLine().trim().toLowerCase();
+
+            UserType newRole = UserType.fromString(roleStr);
+
+            if (newRole == null) {
+                output.println("Invalid user type.");
+                return;
+            }
+
+            boolean success = UserManager.getInstance().modifyUserRole(username, newRole);
+            if (success) {
+                output.println("User role updated successfully.");
+            }
+
+        } catch (IllegalArgumentException e) {
+            output.println("Error: " + e.getMessage());
+        } catch (IOException e) {
+            output.println("IO Error: " + e.getMessage());
+        }
+    }
+
+    private void handleViewBranchInventory(BufferedReader input, PrintWriter output) {
+        int branchNumber = loggedInUser.getBranchNumber(); // get the user’s branch number
+
+        output.println("Inventory for branch #" + branchNumber + ":");
+
+        // Use the InventoryManager Singleton instance to get the inventory
+        InventoryManager inventoryManager = InventoryManager.getInstance();
+        List<InventoryItem> inventory = inventoryManager.getInventoryByCity(branchNumber);
+
+        if (inventory.isEmpty()) {
+            output.println("No inventory found for this branch.");
+            return;
+        }
+
+        // Display the inventory items
+        for (InventoryItem item : inventory) {
+            Product p = ProductsCatalog.getProduct(item.getProductIdentifier());
+            if (p == null) {
+                output.println(String.format(
+                        "Unknown product (%s) - Quantity: %d",
+                        item.getProductIdentifier(),
+                        item.getQuantity()
+                ));
+            } else {
+                output.println(String.format(
+                        "%s (%s) - Price: %.2f - Quantity: %d",
+                        p.getName(),
+                        p.getProductIdentifier(),
+                        p.getPrice(),
+                        item.getQuantity()
+                ));
+            }
+        }
+
+    }
+
+    private void handleExecuteSale(BufferedReader input, PrintWriter output) {
+
+        //TODO: For simplicity currently implemented using try catch simple structure.
+        // Modify To correctly ask for this.
+        try {
+
+            // Pick a customer (for now, just first existing)
+            CustomerAbstract customer = CustomerManager.getInstance().getAllCustomers().get(1);
+
+            int branchNumber = loggedInUser.getBranchNumber();
+
+            output.println("Enter product ID:");
+            String productId = input.readLine();
+
+            output.println("Enter quantity:");
+            int quantity = Integer.parseInt(input.readLine());
+
+            SalesRequest request = new SalesRequest();
+            request.setBranchNumber(branchNumber);
+            request.setProductId(productId);
+            request.setQuantity(quantity);
+            request.setCustomer(customer);
+
+
+            SalesManager salesManager = SalesManager.getInstance();
+            SalesResult result = salesManager.processSale(request);
+
+            output.println("Sale success: " + result.isSuccess());
+            output.println("Message: " + result.getMessage());
+            output.println("Original price: " + result.getOriginalPrice());
+            output.println("Discount applied: " + result.getDiscountApplied());
+            output.println("Final price: " + result.getFinalPrice());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void handleRequestChat(BufferedReader input, PrintWriter output) {
+        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        output.println("Method: " + methodName);
+    }
+
+    private void handleViewAvailableToChat(BufferedReader input, PrintWriter output) {
+        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        output.println("Method: " + methodName);
+    }
+
+    private void handleViewProductPrice(BufferedReader input, PrintWriter output) {
+        productsManager.getAllProducts().forEach(product -> {
+            output.println(String.format(
+                    "%s %s- Price: %.2f",
+                    product.getProductIdentifier(),
+                    product.getName(),
+                    product.getPrice()
+            ));
+        });
+        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        output.println("Method: " + methodName);
+    }
+
+    private void handleAddCustomer(BufferedReader input, PrintWriter output) {
+        //TODO: Test works.
+
+        try {
+
+            CustomerAbstract newCustomer = ValidationsService.requestAndValidateCustomer(input, output);
+
+            if (newCustomer != null) {
+                customerManager.addCustomer(newCustomer);
+                output.println("Customer added successfully! ID: " + newCustomer.getCustId());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            output.println("Failed to add customer: " + e.getMessage());
+        }
+    }
+
+//    private void handleAddCustomer(BufferedReader input, PrintWriter output) {
+//
+//        try {
+//            output.println("Enter customer full name:");
+//            String fullName = input.readLine().trim();
+//
+//            output.println("Enter customer phone number:");
+//            String phoneNumber = input.readLine().trim();
+//
+//            output.println("Enter customer type (New / Returning / Vip):");
+//            String typeInput = input.readLine().trim();
+//            CustomerTypeEnum customerType;
+//            try {
+//                customerType = CustomerTypeEnum.valueOf(typeInput);
+//            } catch (IllegalArgumentException e) {
+//                output.println("Invalid customer type. Aborting.");
+//                return;
+//            }
+//
+//            String custId = "C" + (CustomerManager.getInstance().getAllCustomers().size() + 1);
+//
+//            CustomerAbstract newCustomer = CustomerFactory.createCustomer(
+//                    custId,
+//                    fullName,
+//                    phoneNumber,
+//                    customerType,
+//                    0 // new Customer hasn't spent anything yet.
+//            );
+//
+//            customerManager.addCustomer(newCustomer);
+//
+//            output.println("Customer added successfully! ID: " + custId);
+//
+//
+//            String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+//            output.println("Method: " + methodName);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            output.println("Failed to add customer: " + e.getMessage());
+//        }
+//
+//    }
+
+    private void handleJoinExistingChat(BufferedReader input, PrintWriter output) {
+        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        output.println("Method: " + methodName);
+    }
+
+    private void handleViewCurrentOpenChats(BufferedReader input, PrintWriter output) {
+        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        output.println("Method: " + methodName);
+    }
+
+    private void handleViewAllCustomers(BufferedReader input, PrintWriter output) {
+        output.println("=== All Customers ===");
+
+        List<CustomerAbstract> customers = CustomerManager.getInstance().getAllCustomers();
+
+        if (customers.isEmpty()) {
+            output.println("No customers found.");
+            return;
+        }
+
+        for (CustomerAbstract customer : customers) {
+            output.println(String.format(
+                    "Name: %s, ID: %s, Phone: %s, Type: %s",
+                    customer.getFullName(),
+                    customer.getCustId(),
+                    customer.getPhoneNumber(),
+                    customer.getCustomerType()
+            ));
+        }
+
+        String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
+        output.println("Method: " + methodName);
+    }
+
+
+    private void handleLogOut(BufferedReader input, PrintWriter output) {
+        //loggedInUsers.remove(currentUser.getUsername());
+        loggedInUser = null;
+        output.println("You have been logged out.");
+
+        try {
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void saveUsersToJson() throws IOException {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-        List<UserJson> userList = users.values().stream()
-                .map(UserJson::new)
-                .collect(Collectors.toList());
-
-        try (FileWriter writer = new FileWriter(JSON_FILE_PATH.toString())) {
-            gson.toJson(userList, writer);
-        } catch (IOException e) {
-            System.out.println("Failed to save users to JSON.");
-            e.printStackTrace();
-        }
-    }
-
-    public static boolean authenticate(String username, String password) {
-        boolean authenticated = true;
-        User user = instance.getUserByUserName(username);
-
-        if (user == null)
-        {
-            authenticated =  false;
-        }
-        else if (!user.getPassword().equals(password)) {
-            authenticated = false;
-        }
-
-        return authenticated;
-    }
-
-    public User getUserByUserName(String username) {
-        return users.get(username); // returns null if key not in Map
-    }
-
-
-    // Helper class for JSON mapping
-    private static class UserJson {
-        public String username;
-        public String id;
-        public String password;
-        public String email;
-        public String phoneNumber;
-        public String accountNumber;
-        public int branchNumber;
-        public UserType userType;
-
-        public UserJson(User user) {
-            this.username = user.getUsername();
-            this.id = user.getId();
-            this.password = user.getPassword();
-            this.email = user.getEmail();
-            this.phoneNumber = user.getPhoneNumber();
-            this.accountNumber = user.getAccountNumber();
-            this.branchNumber = user.getBranchNumber();
-            this.userType = user.getUserType();
-        }
-
-        // default constructor needed for Gson
-        public UserJson() {}
     }
 }
-
