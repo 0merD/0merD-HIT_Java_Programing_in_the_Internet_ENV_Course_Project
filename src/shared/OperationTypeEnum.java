@@ -12,21 +12,23 @@ public enum OperationTypeEnum {
     VIEW_CURRENT_OPEN_CHATS("4", "View Current Open Chats", EnumSet.of(UserType.ShiftManager)),
     JOIN_EXISTING_CHAT("5", "Join Existing Chat", EnumSet.of(UserType.ShiftManager)),
 
-    // ShiftManager + BasicWorkerOperations
-    VIEW_ALL_CUSTOMERS("9", "View All Customers",  EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-    ADD_CUSTOMER("7", "Add Customer", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-
+    // ShiftManager + BasicWorker operations
     VIEW_BRANCH_INVENTORY("6", "View Branch Inventory",  EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    ADD_CUSTOMER("7", "Add Customer", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
     VIEW_PRODUCT_PRICE("8", "View Product Price", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-
-    VIEW_AVAILABLE_TO_CHAT("8", "View Available To Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-    REQUEST_CHAT("8", "Request Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-
+    VIEW_ALL_CUSTOMERS("9", "View All Customers",  EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
     EXECUTE_SALE("10", "Execute Sale", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
 
     // Logout All
-    LOGOUT("11", "Logout", EnumSet.allOf(UserType.class));
+    LOGOUT("11", "Logout", EnumSet.allOf(UserType.class)),
 
+    // Chat operations (moved here; unique codes)
+    VIEW_AVAILABLE_TO_CHAT("12", "View Available To Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    REQUEST_CHAT("13", "Request Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    CHAT_SEND_MESSAGE("14", "Send Chat Message", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    CHAT_GOODBYE("15", "Leave/End Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    SAVE_CHAT("16", "Save Current Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    CHAT_INVITE_RESPONSE("17", "Respond to Chat Invite", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker));
 
     private final String code;
     private final String description;
