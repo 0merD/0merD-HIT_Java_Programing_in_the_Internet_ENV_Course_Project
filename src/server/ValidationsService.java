@@ -4,6 +4,9 @@ import shared.UserType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class ValidationsService {
 
@@ -86,20 +89,28 @@ public class ValidationsService {
     }
 
     public static String validateId(String s) throws IllegalArgumentException {
-        //TODO: Chceck id is unique.
         if (s == null || s.trim().isEmpty()) {
             throw new IllegalArgumentException("ID cannot be empty.");
         }
-        if (!s.matches("\\d+")) {
-            throw new IllegalArgumentException("ID must contain only digits.");
+        if (!s.matches("\\d{9}")) {
+            throw new IllegalArgumentException("ID must be exactly 9 digits.");
         }
+
+        // Check against all existing users
+        for (User user : UserManager.getInstance().getAllUsers()) {
+            if (user.getId().equals(s.trim())) {
+                throw new IllegalArgumentException("ID already exists: " + s);
+            }
+        }
+
         return s.trim();
     }
-
     public static String validatePassword(String password) throws IllegalArgumentException {
-        if (password == null || password.length() < 6) {
-            throw new IllegalArgumentException("Password must be at least 6 characters.");
-        }
+        if (password == null) throw new IllegalArgumentException("Password cannot be null.");
+        if (password.length() < 8) throw new IllegalArgumentException("Password must be at least 8 characters.");
+        if (!password.matches(".*[A-Z].*")) throw new IllegalArgumentException("Password must contain at least one uppercase letter.");
+        if (!password.matches(".*[0-9].*")) throw new IllegalArgumentException("Password must contain at least one digit.");
+        if (!password.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) throw new IllegalArgumentException("Password must contain at least one special character.");
         return password;
     }
 

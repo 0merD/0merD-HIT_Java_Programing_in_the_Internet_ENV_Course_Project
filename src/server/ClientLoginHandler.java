@@ -3,6 +3,7 @@ package server;
 import shared.OperationTypeEnum;
 import shared.UserType;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -145,20 +146,43 @@ public class ClientLoginHandler extends Thread {
         }
     }
 
-
-    // Operation handlers
     private void handleAddUser(BufferedReader input, PrintWriter output) {
-        //TODO: test works
         try {
             User newUser = ValidationsService.requestAndValidateUser(input, output);
             UserManager.getInstance().addUser(newUser);
+
             output.println("User added successfully.");
+
+            // Log success
+            LogAction.logUserAction("Add User", newUser.getUsername(), newUser.getUserType().toString(), "SUCCESS"
+            );
+
         } catch (IllegalArgumentException e) {
             output.println("Validation error: " + e.getMessage());
+
+            // Log failure
+            LogAction.logUserFailure("Add User");
+
         } catch (IOException e) {
             output.println("Failed to add user: " + e.getMessage());
+
+            // Log failure
+            LogAction.logUserFailure("Add User");
         }
     }
+
+//    private void handleAddUser(BufferedReader input, PrintWriter output) {
+//        //TODO: test works
+//        try {
+//            User newUser = ValidationsService.requestAndValidateUser(input, output);
+//            UserManager.getInstance().addUser(newUser);
+//            output.println("User added successfully.");
+//        } catch (IllegalArgumentException e) {
+//            output.println("Validation error: " + e.getMessage());
+//        } catch (IOException e) {
+//            output.println("Failed to add user: " + e.getMessage());
+//        }
+//    }
 
 
     private void handleDeleteUser(BufferedReader input, PrintWriter output) {
@@ -307,24 +331,47 @@ public class ClientLoginHandler extends Thread {
         String methodName = new Object(){}.getClass().getEnclosingMethod().getName();
         output.println("Method: " + methodName);
     }
-
     private void handleAddCustomer(BufferedReader input, PrintWriter output) {
-        //TODO: Test works.
-
         try {
-
             CustomerAbstract newCustomer = ValidationsService.requestAndValidateCustomer(input, output);
 
             if (newCustomer != null) {
                 customerManager.addCustomer(newCustomer);
                 output.println("Customer added successfully! ID: " + newCustomer.getCustId());
+
+                LogAction.logCustomerAction(
+                        "Add Customer", newCustomer.getFullName(), newCustomer.getCustomerType().toString(), "SUCCESS");
+            } else {
+                // Log validation failure
+                LogAction.logCustomerFailure("Add Customer");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             output.println("Failed to add customer: " + e.getMessage());
+
+            // Log unexpected failure
+            LogAction.logCustomerFailure("Add Customer");
         }
     }
+
+//    private void handleAddCustomer(BufferedReader input, PrintWriter output) {
+//        //TODO: Test works.
+//
+//        try {
+//
+//            CustomerAbstract newCustomer = ValidationsService.requestAndValidateCustomer(input, output);
+//
+//            if (newCustomer != null) {
+//                customerManager.addCustomer(newCustomer);
+//                output.println("Customer added successfully! ID: " + newCustomer.getCustId());
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            output.println("Failed to add customer: " + e.getMessage());
+//        }
+//    }
 
 //    private void handleAddCustomer(BufferedReader input, PrintWriter output) {
 //
