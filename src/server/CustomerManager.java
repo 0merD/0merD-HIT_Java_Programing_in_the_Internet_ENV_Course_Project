@@ -26,7 +26,7 @@ public class CustomerManager implements CustomerStorage {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     // Uses custId (String) as the unique id per customer
-    private final Map<String, CustomerAbstract> customers = new HashMap<>();
+    private transient final Map<String, CustomerAbstract> customers = new HashMap<>();
 
     private CustomerManager() {}
 
@@ -36,6 +36,36 @@ public class CustomerManager implements CustomerStorage {
             instance.loadCustomersFromStorage();
         }
         return instance;
+    }
+
+    public static void promoteCustomer(CustomerAbstract customer) {
+        CustomerTypeEnum currentType = customer.getCustomerType();
+        double totalSpent = customer.getTotalSpent();
+        boolean promoted = false;
+
+        switch (currentType) {
+            case New:
+                if (totalSpent >= ThresholdConsts.RETURNING_CUSTOMER_THRESHOLD) {
+                    customer.setCustomerType(CustomerTypeEnum.Returning);
+                    promoted = true;
+                }
+                break;
+
+            case Returning:
+                if (totalSpent >= ThresholdConsts.VIP_CUSTOMER_THRESHOLD) {
+                    customer.setCustomerType(CustomerTypeEnum.Vip);
+                    promoted = true;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        if (promoted) {
+            CustomerManager.getInstance().saveCustomers(CustomerManager.instance.getAllCustomers());
+        }
+
     }
 
     @Override
@@ -96,12 +126,14 @@ public class CustomerManager implements CustomerStorage {
         public String custId;
         public String phoneNumber;
         public CustomerTypeEnum customerType;
+        public double totalSpent;
 
         public CustomerJson(CustomerAbstract customer) {
             this.fullName = customer.getFullName();
             this.custId = customer.getCustId();
             this.phoneNumber = customer.getPhoneNumber();
             this.customerType = customer.getCustomerType();
+            this.totalSpent = customer.getTotalSpent();
         }
 
         // Used to convert back to customer using the CustomerFactory
@@ -110,39 +142,33 @@ public class CustomerManager implements CustomerStorage {
                     fullName,
                     custId,
                     phoneNumber,
-                    customerType
+                    customerType,
+                    totalSpent
             );
         }
     }
 
-    // TODO: Delete this main.
-    // main for testing only
+    //Todo: delete this main
     public static void main(String[] args) {
+        CustomerManager manager = CustomerManager.getInstance();
 
-        // Create the manager and load existing customers
-        CustomerManager manager = new CustomerManager();
-        List<CustomerAbstract> loadedCustomers = manager.loadCustomersFromStorage();
+        // Load customer C001
 
-        System.out.println("Loaded customers from JSON:");
-        loadedCustomers.forEach(System.out::println);
+        List<CustomerAbstract> lst =manager.getAllCustomers();
+        CustomerAbstract noam = lst.stream()
+                .filter(c -> c.getCustId().equals("C001")) // condition
+                .findFirst()                               // returns Optional<CustomerAbstract>
+                .orElse(null);
 
-        // Add new customers
-        CustomerNew alice = new CustomerNew("Alice Cohen", "123456789", "050-1111111", CustomerTypeEnum.New);
-        CustomerVip charlie = new CustomerVip("Charlie Gold", "555555555", "053-3333333", CustomerTypeEnum.Vip);
-        CustomerReturning bob = new CustomerReturning("Bob Levi", "987654321", "052-2222222", CustomerTypeEnum.Returning);
+        // Register a purchase that should trigger promotion
+        double purchaseAmount = 160.0;  // totalSpent goes from 50 -> 210
+        noam.addSpent(purchaseAmount);
+        CustomerManager.promoteCustomer(noam);
 
-        manager.addCustomer(alice);
-        manager.addCustomer(bob);
-        manager.addCustomer(charlie);
+        System.out.println("After purchase: " + noam);
 
-        System.out.println("\nAll customers after adding:\n");
-        manager.getAllCustomers().forEach(System.out::println);
-
-        // Save to JSON
+        // Save changes to JSON
         manager.saveCustomers(manager.getAllCustomers());
-
-        System.out.println("\nCustomers saved to JSON successfully!");
     }
-
 
 }

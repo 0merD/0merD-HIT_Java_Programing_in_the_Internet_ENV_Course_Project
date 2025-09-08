@@ -12,14 +12,17 @@ public class OrderDetails {
     }
 
     public double getTotalPrice() {
+
         return totalPrice;
     }
 
     public int getQuantity() {
+
         return quantity;
     }
 
     public CustomerAbstract getCustomer() {
+
         return customer;
     }
 }

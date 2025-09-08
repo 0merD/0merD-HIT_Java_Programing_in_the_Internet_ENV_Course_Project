@@ -5,33 +5,26 @@ import java.util.Map;
 
 public class CustomerReturning extends CustomerAbstract{
 
-    private final Map<String, StrategyDiscount> availableStrategies;
+    public CustomerReturning(String fullName, String idNumber, String phoneNumber, CustomerTypeEnum clientType, double totalSpent) {
+        super(fullName, idNumber, phoneNumber, clientType, totalSpent);
 
-    public CustomerReturning(String fullName, String idNumber, String phoneNumber, CustomerTypeEnum clientType) {
-        super(fullName, idNumber, phoneNumber, clientType);
+        CustomerDiscountsRegistry registry = getCustomerDiscountsRegistry();
 
-        availableStrategies = initializeStrategies();
-    }
+        registry.addStrategy("No Discount", new DiscountStrategyNoDiscount());
 
-    @Override
-    public double applyBestDiscount(OrderDetails orderDetails) {
-        return 0;
-    }
+        // Optional percentage discount
+        registry.addStrategy("PercentageDiscount", new DiscountStrategyPercentage(0.1));
 
-    private Map<String, StrategyDiscount> initializeStrategies() {
-
-        Map<String, StrategyDiscount> strategies = new HashMap<>();
-
-        strategies.put("No Discount", new DiscountStrategyNoDiscount());
-
-        strategies.put("PercentageDiscount", new DiscountStrategyPercentage(0.1));
-
+        // Quantity-based discount thresholds
         HashMap<Integer, Double> returningCustomerQuantityThresholds = new HashMap<>();
         returningCustomerQuantityThresholds.put(2, 0.10);
         returningCustomerQuantityThresholds.put(5, 0.15);
         returningCustomerQuantityThresholds.put(10, 0.20);
-        strategies.put("Quantity", new DiscountStrategyQuantity(returningCustomerQuantityThresholds));
+        registry.addStrategy("Quantity", new DiscountStrategyQuantity(returningCustomerQuantityThresholds));
+    }
 
-        return strategies;
+    @Override
+    public double applyBestDiscount(OrderDetails orderDetails) {
+        return getCustomerDiscountsRegistry().getBestDiscountedPrice(orderDetails);
     }
 }

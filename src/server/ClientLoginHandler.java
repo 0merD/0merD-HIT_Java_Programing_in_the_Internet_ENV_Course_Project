@@ -285,6 +285,7 @@ public class ClientLoginHandler extends Thread {
     private void handleExecuteSale(BufferedReader input, PrintWriter output) {
 
         //TODO: For simplicity currently implemented using try catch simple structure.
+        // Modify To correctly ask for this.
         try {
 
             // Pick a customer (for now, just first existing)
@@ -361,14 +362,14 @@ public class ClientLoginHandler extends Thread {
                 return;
             }
 
-            //Todo: Verify with avraham this works as he thought appropriate.
             String custId = "C" + (CustomerManager.getInstance().getAllCustomers().size() + 1);
 
             CustomerAbstract newCustomer = CustomerFactory.createCustomer(
                     custId,
                     fullName,
                     phoneNumber,
-                    customerType
+                    customerType,
+                    0 // new Customer hasn't spent anything yet.
             );
 
             customerManager.addCustomer(newCustomer);

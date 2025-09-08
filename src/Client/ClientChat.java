@@ -16,7 +16,7 @@ public class ClientChat {
     private BufferedReader fromServer;
     private PrintStream toServer;
     private Scanner consoleInputStream;
-
+    private boolean isRunning = true;
     public ClientChat(String host, int port) {
         this.host = host;
         this.port = port;
@@ -44,12 +44,13 @@ public class ClientChat {
             serverListener.start();
 
             String line;
-            while (true) {
+            while (isRunning) {
                 line = consoleInputStream.nextLine();
                 if (line.equalsIgnoreCase("exit")) break;
                 toServer.println(line);
             }
 
+            isRunning = false;
             socket.close();
             System.out.println("Disconnected from server.");
 

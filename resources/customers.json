@@ -1,38 +1,44 @@
 [
   {
-    "custId": "C001",
-    "fullName": "Noam Seifer",
-    "phoneNumber": "0501234567",
-    "customerType": "New"
-  },
-  {
-    "custId": "C002",
     "fullName": "Lior Cohen",
+    "custId": "C002",
     "phoneNumber": "0512345678",
-    "customerType": "Vip"
+    "customerType": "Vip",
+    "totalSpent": 600.0
   },
   {
-    "custId": "C003",
-    "fullName": "Yael Levi",
-    "phoneNumber": "0523456789",
-    "customerType": "Returning"
+    "fullName": "Noam Seifer",
+    "custId": "C001",
+    "phoneNumber": "0501234567",
+    "customerType": "Returning",
+    "totalSpent": 210.0
   },
   {
-    "custId": "C004",
-    "fullName": "David Katz",
-    "phoneNumber": "0534567890",
-    "customerType": "New"
-  },
-  {
-    "custId": "C005",
-    "fullName": "Maya Ben-David",
-    "phoneNumber": "0545678901",
-    "customerType": "Vip"
-  },
-  {
-    "custId": "C006",
     "fullName": "Elior Mizrahi",
+    "custId": "C006",
     "phoneNumber": "0556789012",
-    "customerType": "Returning"
+    "customerType": "Returning",
+    "totalSpent": 250.0
+  },
+  {
+    "fullName": "Maya Ben-David",
+    "custId": "C005",
+    "phoneNumber": "0545678901",
+    "customerType": "Vip",
+    "totalSpent": 800.0
+  },
+  {
+    "fullName": "David Katz",
+    "custId": "C004",
+    "phoneNumber": "0534567890",
+    "customerType": "New",
+    "totalSpent": 120.0
+  },
+  {
+    "fullName": "Yael Levi",
+    "custId": "C003",
+    "phoneNumber": "0523456789",
+    "customerType": "Returning",
+    "totalSpent": 300.0
   }
 ]

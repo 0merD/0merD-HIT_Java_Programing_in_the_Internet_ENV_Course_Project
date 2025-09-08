@@ -1,19 +1,27 @@
 package server;
 
+import java.util.Map;
+
 public abstract class CustomerAbstract {
 
     private String fullName;
-    private String custId; // ת.ז
+    private String custId; // "C001"
     private String phoneNumber;
     private CustomerTypeEnum customerType;
+    private double totalSpent;
 
+    protected transient CustomerDiscountsRegistry customerDiscountsRegistry; // transient = avoid serializing to json.
 
-    public CustomerAbstract(String fullName, String idNumber, String phoneNumber, CustomerTypeEnum clientType) {
+    public CustomerAbstract(String fullName, String idNumber, String phoneNumber, CustomerTypeEnum clientType, double totalSpent) {
         this.fullName = fullName;
         this.custId = idNumber;
         this.phoneNumber = phoneNumber;
         this.customerType = clientType;
+        this.totalSpent = totalSpent;
+        this.customerDiscountsRegistry = new CustomerDiscountsRegistry();
+        customerDiscountsRegistry.addStrategy("No Discount", new DiscountStrategyNoDiscount());
     }
+
 
     public abstract double applyBestDiscount(OrderDetails orderDetails);
 
@@ -45,8 +53,25 @@ public abstract class CustomerAbstract {
         return customerType;
     }
 
-    public void setCustomerType(CustomerTypeEnum clientType) {
-        this.customerType = clientType;
+    public void setCustomerType(CustomerTypeEnum customerType) {
+        this.customerType = customerType;
+    }
+
+    public CustomerDiscountsRegistry getCustomerDiscountsRegistry() {
+        return customerDiscountsRegistry;
+    }
+
+    public void setTotalSpent(double totalSpent) {
+        this.totalSpent = totalSpent;
+    }
+
+    public void addSpent(double amount) {
+        setTotalSpent(getTotalSpent() + amount);
+        CustomerManager.promoteCustomer(this); // central promotion logic
+    }
+
+    public double getTotalSpent() {
+        return totalSpent;
     }
 
     @Override
@@ -54,4 +79,6 @@ public abstract class CustomerAbstract {
         return String.format("Customer{id=%s, name=%s, phone=%s, type=%s}",
                 custId, fullName, phoneNumber, customerType);
     }
+
+
 }
