@@ -52,8 +52,8 @@ public class ClientLoginHandler extends Thread {
 
         operationHandlersMap.put(OperationTypeEnum.VIEW_AVAILABLE_TO_CHAT, this::handleViewAvailableToChat);
         operationHandlersMap.put(OperationTypeEnum.REQUEST_CHAT, this::handleRequestChat);
-        operationHandlersMap.put(OperationTypeEnum.CHAT_SEND_MESSAGE, this::handleChatSendMessage);
-        operationHandlersMap.put(OperationTypeEnum.CHAT_GOODBYE, this::handleChatGoodbye);
+       // operationHandlersMap.put(OperationTypeEnum.CHAT_SEND_MESSAGE, this::handleChatSendMessage);
+      //  operationHandlersMap.put(OperationTypeEnum.CHAT_GOODBYE, this::handleChatGoodbye);
         operationHandlersMap.put(OperationTypeEnum.SAVE_CHAT, this::handleSaveChat);
         operationHandlersMap.put(OperationTypeEnum.CHAT_INVITE_RESPONSE, this::handleChatInviteResponse);
 
@@ -190,7 +190,7 @@ public class ClientLoginHandler extends Thread {
 
     // Chat-mode loop: send raw lines to CommandHandler until "goodbye"
     private void runChatLoop(BufferedReader input, PrintWriter output) throws IOException {
-        output.println("You are now in chat mode. Type your message, or 'goodbye' to leave, or 'savechat' to save.");
+        output.println("You are now in chat mode. Type your message, or 'goodbye' to leave chat or chat mode, or 'savechat' to save.");
         while (inChatMode) {
             String line = input.readLine();
             if (line == null) {

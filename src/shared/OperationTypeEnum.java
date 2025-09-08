@@ -25,10 +25,10 @@ public enum OperationTypeEnum {
     // Chat operations (moved here; unique codes)
     VIEW_AVAILABLE_TO_CHAT("12", "View Available To Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
     REQUEST_CHAT("13", "Request Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-    CHAT_SEND_MESSAGE("14", "Send Chat Message", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-    CHAT_GOODBYE("15", "Leave/End Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+   // CHAT_SEND_MESSAGE("14", "Send Chat Message", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+   // CHAT_GOODBYE("15", "Leave/End Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
     SAVE_CHAT("16", "Save Current Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-    CHAT_INVITE_RESPONSE("17", "Respond to Chat Invite", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker));
+    CHAT_INVITE_RESPONSE("17", "Respond Yes/No to Chat Invite", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker));
 
     private final String code;
     private final String description;
