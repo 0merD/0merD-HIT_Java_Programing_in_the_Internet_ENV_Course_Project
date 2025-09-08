@@ -45,6 +45,15 @@ public class InventoryManager {
         return instance;
     }
 
+    // ... existing code ...
+    // Added: provide branch city name for external use (chat display names)
+    public String getBranchCityByNumber(Integer branchNumber) {
+        if (branchNumber == null) return null;
+        return branchNumberToCity.get(branchNumber);
+    }
+// ... existing code ...
+
+
     public List<InventoryItem> getInventoryByCity(Integer branchNumber) {
         String cityName = branchNumberToCity.get(branchNumber);
         File file = new File(INVENTORY_DIR + cityName + ".json");
@@ -97,8 +106,6 @@ public class InventoryManager {
         }
     }
 
-
-
     public boolean hasSufficientStock(Integer branchNumber, String productId, int qty) {
         boolean hasSufficientStock = false;
         List<InventoryItem> inventory = getInventoryByCity(branchNumber);
@@ -149,4 +156,3 @@ public class InventoryManager {
         return  INVENTORY_DIR + branchNumberToCity.get(branchNumber);
     }
 }
-

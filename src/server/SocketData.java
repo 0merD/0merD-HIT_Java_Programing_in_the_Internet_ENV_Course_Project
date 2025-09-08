@@ -1,5 +1,7 @@
 package server;
 
+import shared.UserType;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,10 +15,14 @@ public class SocketData {
     private String clientAddress;
     private boolean available = true;
     private String name;
-
-    // --- MODIFIED FIELDS ---
+    // ... existing code ...
     private ChatSession currentSession = null; // Reference to the current chat session
     private SocketData pendingRequestTo = null; // Tracks an outgoing chat request
+    // ... existing code ...
+
+    // Add user metadata so CommandHandler can read the user type
+    private UserType userType = null;
+    private Integer branchNumber = null;
 
     public SocketData(Socket socket) {
         this.socket = socket;
@@ -62,7 +68,6 @@ public class SocketData {
         this.name = n;
     }
 
-    // --- NEW AND MODIFIED METHODS ---
     public ChatSession getCurrentSession() {
         return currentSession;
     }
@@ -77,5 +82,22 @@ public class SocketData {
 
     public void setPendingRequestTo(SocketData pendingRequestTo) {
         this.pendingRequestTo = pendingRequestTo;
+    }
+
+    // Add these getters/setters
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public Integer getBranchNumber() {
+        return branchNumber;
+    }
+
+    public void setBranchNumber(Integer branchNumber) {
+        this.branchNumber = branchNumber;
     }
 }

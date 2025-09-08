@@ -5,16 +5,11 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * A thread-safe container for the server's shared state.
- * Manages all connected clients, active chat sessions, and waiting queues.
- */
 public class ServerState {
     private final Vector<SocketData> allConnections = new Vector<>();
     private final ConcurrentHashMap<SocketData, Queue<SocketData>> chatQueues = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<SocketData, ChatSession> activeChatSessions = new ConcurrentHashMap<>();
 
-    // Client Management
     public void addClient(SocketData client) {
         allConnections.add(client);
     }
@@ -29,9 +24,15 @@ public class ServerState {
         return allConnections;
     }
 
-    public SocketData findClientById(String id) {
+    // Match by friendly name first; also support legacy id (ip:port)
+    public SocketData findClientById(String idOrName) {
         for (SocketData sd : allConnections) {
-            if (sd.getClientAddress().equals(id)) {
+            if (sd.getName() != null && sd.getName().equals(idOrName)) {
+                return sd;
+            }
+        }
+        for (SocketData sd : allConnections) {
+            if (sd.getClientAddress().equals(idOrName)) {
                 return sd;
             }
         }
@@ -47,7 +48,6 @@ public class ServerState {
         return null;
     }
 
-    // Chat Session Management
     public void startSession(ChatSession session) {
         activeChatSessions.put(session.getClient1(), session);
         activeChatSessions.put(session.getClient2(), session);
@@ -58,10 +58,10 @@ public class ServerState {
     }
 
     public void endSession(ChatSession session) {
+        session.endSession();
         session.getParticipants().forEach(activeChatSessions::remove);
     }
 
-    // Queue Management
     public void enqueueClient(SocketData target, SocketData requester) {
         chatQueues.putIfAbsent(target, new ConcurrentLinkedQueue<>());
         chatQueues.get(target).add(requester);

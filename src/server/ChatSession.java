@@ -44,11 +44,13 @@ public class ChatSession {
         return participants;
     }
 
+    // ... existing code ...
     public void appendMessage(SocketData sender, String message) {
         String logEntry = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                .format(new Date()) + " " + sender.getClientAddress() + ": " + message + "\n";
+                .format(new Date()) + " " + sender.getName() + ": " + message + "\n";
         this.chatContent.append(logEntry);
     }
+// ... existing code ...
 
     public void endSession() {
         this.endTime = new Date();

@@ -36,8 +36,10 @@ public class ChatLogger {
     public static void saveSessionToLog(ChatSession session) {
         if (session.endTime == null) session.endSession();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String c1 = sanitizeAddress(session.getClient1().getClientAddress());
-        String c2 = sanitizeAddress(session.getClient2().getClientAddress());
+
+        // Use friendly names (username@branch) instead of IPs
+        String c1 = session.getClient1().getName();
+        String c2 = session.getClient2().getName();
 
         StringBuilder entry = new StringBuilder();
         entry.append("=== Chat Session ===\n");
@@ -61,9 +63,5 @@ public class ChatLogger {
         }
     }
 
-    private static String sanitizeAddress(String addr) {
-        if (addr == null) return "unknown";
-        String s = addr.startsWith("/") ? addr.substring(1) : addr;
-        return s.replaceAll("[^A-Za-z0-9._-]", "_");
-    }
+    // ... existing code ...
 }
