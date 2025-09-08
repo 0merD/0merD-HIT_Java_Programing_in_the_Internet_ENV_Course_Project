@@ -1,25 +1,54 @@
 [
   {
     "username": "enrico",
-    "id": "U001",
+    "id": "1",
     "password": "pass",
     "email": "encrico@gmail.com",
     "branchNumber": 1,
-    "accountNumber": "9999",
+    "phoneNumber": "0548765432",
     "userType": "Admin"
   },
   {
+    "username": "kevin",
+    "id": "123456",
+    "password": "theBird",
+    "email": "kevin@mail.com",
+    "phoneNumber": "054896567",
+    "accountNumber": "123456",
+    "branchNumber": 2,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "noam1",
+    "id": "1234",
+    "password": "12345",
+    "email": "lou@mail.com",
+    "phoneNumber": "058465875",
+    "accountNumber": "123456",
+    "branchNumber": 1,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "momo",
+    "id": "12345",
+    "password": "password",
+    "email": "momo@mail.com",
+    "phoneNumber": "0548963215",
+    "accountNumber": "12345",
+    "branchNumber": 1,
+    "userType": "ShiftManager"
+  },
+  {
     "username": "avraham",
-    "id": "U002",
+    "id": "2",
     "password": "abc",
     "email": "avraham@gmail.com",
-    "branchNumber": 3,
-    "accountNumber": "9999",
+    "branchNumber": 2,
     "userType": "ShiftManager"
   },
   {
     "username": "basic",
-    "id": "U003",
+    "id": "23",
     "password": "1234",
     "email": "basic@gmail.com",
     "phoneNumber": "0547738844",
@@ -29,11 +58,22 @@
   },
   {
     "username": "noam",
-    "id": "U004",
+    "id": "1234",
     "password": "noam1234",
     "email": "noamseifer@gmail.com",
     "phoneNumber": "0547739944",
     "accountNumber": "1",
     "branchNumber": 1,
+    "userType": "ShiftManager"
+  },
+  {
+    "username": "omer",
+    "id": "123456789",
+    "password": "123456",
+    "email": "omer@gmail.com",
+    "phoneNumber": "0541234567",
+    "accountNumber": "123123",
+    "branchNumber": 2,
+    "userType": "BasicWorker"
   }
 ]
