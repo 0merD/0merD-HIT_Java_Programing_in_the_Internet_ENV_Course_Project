@@ -25,7 +25,7 @@ public class ClientLoginHandler extends Thread {
     CustomerManager customerManager = CustomerManager.getInstance();
     ProductsManager productsManager = new ProductsManager(new JsonProductsDataProvider());
     InventoryManager inventoryManager = InventoryManager.getInstance();
-    ChatManager chatManager = new ChatManager();
+    //ChatManager chatManager = new ChatManager();
 
     private User loggedInUser;
 

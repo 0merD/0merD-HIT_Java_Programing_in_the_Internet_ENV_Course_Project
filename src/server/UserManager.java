@@ -1,6 +1,6 @@
 package server;
 
-import server.utilities.UserFactory;
+import server.UserFactory;
 import shared.UserType;
 
 import java.io.FileReader;
@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
