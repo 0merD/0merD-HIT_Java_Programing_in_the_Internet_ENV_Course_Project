@@ -10,11 +10,11 @@ public class CustomerNew extends CustomerAbstract{
 
         CustomerDiscountsRegistry registry = getCustomerDiscountsRegistry();
         registry.addStrategy("No Discount", new DiscountStrategyNoDiscount());
-        HashMap<Integer, Double> vipQuantityThresholds = new HashMap<>();
-        vipQuantityThresholds.put(2, 0.10);
-        vipQuantityThresholds.put(5, 0.15);
-        vipQuantityThresholds.put(10, 0.20);
-        registry.addStrategy("Quantity", new DiscountStrategyQuantity(vipQuantityThresholds));
+        HashMap<Integer, Double> newQuantityThresholds = new HashMap<>();
+        newQuantityThresholds.put(2, 0.10);
+        newQuantityThresholds.put(5, 0.15);
+        newQuantityThresholds.put(10, 0.20);
+        registry.addStrategy("Quantity", new DiscountStrategyQuantity(newQuantityThresholds));
     }
 
     @Override

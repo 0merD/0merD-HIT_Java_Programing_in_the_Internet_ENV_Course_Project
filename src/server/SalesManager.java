@@ -50,6 +50,11 @@ public class SalesManager {
         salesResult.setDiscountApplied(originalPrice-discountedPrice);
         salesResult.setFinalPrice(discountedPrice);
 
+        //TODO: make sure this works properly
+        customer.addSpent(salesResult.getFinalPrice());
+        CustomerManager.promoteCustomer(customer);
+
+
         // 5. Reduce inventory
         try {
             inventoryManager.reduceStock(branchNumber, productId, quantity);
