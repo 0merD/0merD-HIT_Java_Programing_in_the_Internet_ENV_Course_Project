@@ -13,7 +13,10 @@ public class SocketData {
     private String clientAddress;
     private boolean available = true;
     private String name;
-    private SocketData chatPartner = null; // New field to hold the chat partner
+
+    // --- MODIFIED FIELDS ---
+    private ChatSession currentSession = null; // Reference to the current chat session
+    private SocketData pendingRequestTo = null; // Tracks an outgoing chat request
 
     public SocketData(Socket socket) {
         this.socket = socket;
@@ -59,11 +62,20 @@ public class SocketData {
         this.name = n;
     }
 
-    public SocketData getChatPartner() {
-        return chatPartner;
+    // --- NEW AND MODIFIED METHODS ---
+    public ChatSession getCurrentSession() {
+        return currentSession;
     }
 
-    public void setChatPartner(SocketData chatPartner) {
-        this.chatPartner = chatPartner;
+    public void setCurrentSession(ChatSession currentSession) {
+        this.currentSession = currentSession;
+    }
+
+    public SocketData getPendingRequestTo() {
+        return pendingRequestTo;
+    }
+
+    public void setPendingRequestTo(SocketData pendingRequestTo) {
+        this.pendingRequestTo = pendingRequestTo;
     }
 }

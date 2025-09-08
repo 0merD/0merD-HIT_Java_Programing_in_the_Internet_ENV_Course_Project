@@ -1,6 +1,6 @@
 package server;
 
-import com.google.gson.GsonBuilder;
+import server.utilities.UserFactory;
 import shared.UserType;
 
 import java.io.FileReader;
