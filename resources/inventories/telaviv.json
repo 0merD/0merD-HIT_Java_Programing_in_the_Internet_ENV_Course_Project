@@ -1,0 +1,8 @@
+[
+  { "productIdentifier": "P001", "quantity": 120 },
+  { "productIdentifier": "P002", "quantity": 60 },
+  { "productIdentifier": "P003", "quantity": 40 },
+  { "productIdentifier": "P004", "quantity": 80 },
+  { "productIdentifier": "P005", "quantity": 150 },
+  { "productIdentifier": "P006", "quantity": 30 }
+]

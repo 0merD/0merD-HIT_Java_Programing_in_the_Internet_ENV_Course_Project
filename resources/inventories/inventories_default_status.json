@@ -1,0 +1,26 @@
+{
+  "TelAviv": [
+    { "productIdentifier": "P001", "quantity": 120 },
+    { "productIdentifier": "P002", "quantity": 60 },
+    { "productIdentifier": "P003", "quantity": 40 },
+    { "productIdentifier": "P004", "quantity": 80 },
+    { "productIdentifier": "P005", "quantity": 150 },
+    { "productIdentifier": "P006", "quantity": 30 }
+  ],
+  "Haifa": [
+    { "productIdentifier": "P001", "quantity": 70 },
+    { "productIdentifier": "P002", "quantity": 40 },
+    { "productIdentifier": "P003", "quantity": 25 },
+    { "productIdentifier": "P004", "quantity": 55 },
+    { "productIdentifier": "P005", "quantity": 90 },
+    { "productIdentifier": "P006", "quantity": 50 }
+  ],
+  "Jerusalem": [
+    { "productIdentifier": "P001", "quantity": 90 },
+    { "productIdentifier": "P002", "quantity": 75 },
+    { "productIdentifier": "P003", "quantity": 60 },
+    { "productIdentifier": "P004", "quantity": 70 },
+    { "productIdentifier": "P005", "quantity": 110 },
+    { "productIdentifier": "P006", "quantity": 65 }
+  ]
+}

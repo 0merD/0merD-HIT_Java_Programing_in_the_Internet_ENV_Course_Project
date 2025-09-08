@@ -1,4 +1,4 @@
-package server.utilities;
+package server;
 
 public class AuthenticationService {
 }

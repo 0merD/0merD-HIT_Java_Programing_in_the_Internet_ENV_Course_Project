@@ -3,6 +3,7 @@ package server;
 import shared.UserType;
 
 public abstract class User {
+    private String username;
     private String id;
     private String password;
     private String email;
@@ -12,8 +13,16 @@ public abstract class User {
     private UserType userType;
 
     // Constructor
-    public User(String id, String password, String email, String phoneNumber,
-                String accountNumber, int branchNumber, UserType userType) {
+    public User(String username,
+                String id,
+                String password,
+                String email,
+                String phoneNumber,
+                String accountNumber,
+                int branchNumber,
+                UserType userType)
+    {
+        this.username = username;
         this.id = id;
         this.password = password;
         this.email = email;
@@ -30,6 +39,9 @@ public abstract class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
@@ -44,4 +56,10 @@ public abstract class User {
 
     public UserType getUserType() { return userType; }
     public void setUserType(UserType userType) { this.userType = userType; }
+
+    @Override
+    public String toString() {
+        return String.format("username: [%s] user type: [%s] Email: [%s]", username, userType, email);
+    }
+
 }

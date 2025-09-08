@@ -1,49 +1,53 @@
 package server;
 
-public abstract class Product {
-    String name;
-    String description;
-    double price;
-    int catalogNumber; // "Makat"
-    int serialNumber; // the specific product
+public  class Product {
+
+    private String name;
+    private String description;
+    private double price;
+    private String productIdentifier; // "Makat" // Modified to String
+
+    public Product() {}
+
+    public Product(String catalogStringIdentifier, String name, String description, double price) {
+        this.productIdentifier = catalogStringIdentifier;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+    }
+
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public String getDescription() {
+        return description;
     }
 
-    public int getCatalogNumber() {
-        return catalogNumber;
+    public String getProductIdentifier() {
+        return productIdentifier;
     }
 
-    public void setCatalogNumber(int catalogNumber) {
-        this.catalogNumber = catalogNumber;
-    }
-
-    public int getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(int serialNumber) {
-        this.serialNumber = serialNumber;
-    }
+    //Todo: verify with Roy this is ok.
+//    public void setProductStringIdentifier(String productStringIdentifier) {
+//        this.productStringIdentifier = productStringIdentifier;
+//    }
+//
+//    public void setPrice(double price) {
+//        this.price = price;
+//    }
+//
+//
+//    public void setDescription(String description) {
+//        this.description = description;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 }

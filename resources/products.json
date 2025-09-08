@@ -1,0 +1,38 @@
+[
+  {
+    "name": "T-Shirt",
+    "description": "Cotton short-sleeve t-shirt, unisex",
+    "price": 15.0,
+    "productIdentifier": "P001"
+  },
+  {
+    "name": "Hoodie",
+    "description": "Fleece hoodie with front pocket, unisex",
+    "price": 35.0,
+    "productIdentifier": "P002"
+  },
+  {
+    "name": "Jacket",
+    "description": "Lightweight windbreaker jacket",
+    "price": 60.0,
+    "productIdentifier": "P003"
+  },
+  {
+    "name": "Sneakers",
+    "description": "Comfortable running sneakers, various sizes",
+    "price": 50.0,
+    "productIdentifier": "P004"
+  },
+  {
+    "name": "Cap",
+    "description": "Cotton baseball cap, adjustable size",
+    "price": 12.0,
+    "productIdentifier": "P005"
+  },
+  {
+    "name": "Scarf",
+    "description": "Warm wool scarf",
+    "price": 20.0,
+    "productIdentifier": "P006"
+  }
+]
