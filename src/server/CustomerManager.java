@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import server.enums.CustomerTypeEnum;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -149,26 +150,26 @@ public class CustomerManager implements CustomerStorage {
     }
 
     //Todo: delete this main
-    public static void main(String[] args) {
-        CustomerManager manager = CustomerManager.getInstance();
-
-        // Load customer C001
-
-        List<CustomerAbstract> lst =manager.getAllCustomers();
-        CustomerAbstract noam = lst.stream()
-                .filter(c -> c.getCustId().equals("C001")) // condition
-                .findFirst()                               // returns Optional<CustomerAbstract>
-                .orElse(null);
-
-        // Register a purchase that should trigger promotion
-        double purchaseAmount = 160.0;  // totalSpent goes from 50 -> 210
-        noam.addSpent(purchaseAmount);
-        CustomerManager.promoteCustomer(noam);
-
-        System.out.println("After purchase: " + noam);
-
-        // Save changes to JSON
-        manager.saveCustomers(manager.getAllCustomers());
-    }
+//    public static void main(String[] args) {
+//        CustomerManager manager = CustomerManager.getInstance();
+//
+//        // Load customer C001
+//
+//        List<CustomerAbstract> lst =manager.getAllCustomers();
+//        CustomerAbstract noam = lst.stream()
+//                .filter(c -> c.getCustId().equals("C001")) // condition
+//                .findFirst()                               // returns Optional<CustomerAbstract>
+//                .orElse(null);
+//
+//        // Register a purchase that should trigger promotion
+//        double purchaseAmount = 160.0;  // totalSpent goes from 50 -> 210
+//        noam.addSpent(purchaseAmount);
+//        CustomerManager.promoteCustomer(noam);
+//
+//        System.out.println("After purchase: " + noam);
+//
+//        // Save changes to JSON
+//        manager.saveCustomers(manager.getAllCustomers());
+//    }
 
 }

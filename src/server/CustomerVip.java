@@ -1,7 +1,8 @@
 package server;
 
+import server.enums.CustomerTypeEnum;
+
 import java.util.HashMap;
-import java.util.Map;
 
 public class CustomerVip extends CustomerAbstract {
     public CustomerVip(String fullName, String idNumber, String phoneNumber, CustomerTypeEnum clientType, double totalSpent) {

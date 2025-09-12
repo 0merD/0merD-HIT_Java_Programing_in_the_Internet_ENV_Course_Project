@@ -1,6 +1,6 @@
 package server;
 
-import shared.UserType;
+import server.enums.CustomerTypeEnum;
 
 public class CustomerFactory {
     // Factory method to create a User

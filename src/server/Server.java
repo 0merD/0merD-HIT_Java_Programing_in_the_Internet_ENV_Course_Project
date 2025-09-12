@@ -17,7 +17,7 @@ public class Server {
         ServerState serverState = new ServerState();
 
         try  (ServerSocket serverSocket = new ServerSocket(APP_PORT)) {
-            System.out.printf("Unified server is listening on port %d. Waiting for clients...%n", APP_PORT);
+            System.out.printf("Server is listening on port %d. Waiting for clients...%n", APP_PORT);
 
             while (isServerRunning) {
                 final Socket socket = serverSocket.accept(); // blocking

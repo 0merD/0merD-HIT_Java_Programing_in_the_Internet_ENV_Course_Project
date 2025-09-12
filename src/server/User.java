@@ -1,6 +1,6 @@
 package server;
 
-import shared.UserType;
+import server.enums.UserType;
 
 public abstract class User {
     private String username;

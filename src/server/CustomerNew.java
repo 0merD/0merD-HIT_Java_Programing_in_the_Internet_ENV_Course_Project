@@ -1,7 +1,8 @@
 package server;
 
+import server.enums.CustomerTypeEnum;
+
 import java.util.HashMap;
-import java.util.Map;
 
 public class CustomerNew extends CustomerAbstract{
 
@@ -10,11 +11,11 @@ public class CustomerNew extends CustomerAbstract{
 
         CustomerDiscountsRegistry registry = getCustomerDiscountsRegistry();
         registry.addStrategy("No Discount", new DiscountStrategyNoDiscount());
-        HashMap<Integer, Double> vipQuantityThresholds = new HashMap<>();
-        vipQuantityThresholds.put(2, 0.10);
-        vipQuantityThresholds.put(5, 0.15);
-        vipQuantityThresholds.put(10, 0.20);
-        registry.addStrategy("Quantity", new DiscountStrategyQuantity(vipQuantityThresholds));
+        HashMap<Integer, Double> newQuantityDiscountStrategy = new HashMap<>();
+        newQuantityDiscountStrategy.put(2, 0.10);
+        newQuantityDiscountStrategy.put(5, 0.15);
+        newQuantityDiscountStrategy.put(10, 0.20);
+        registry.addStrategy("Quantity", new DiscountStrategyQuantity(newQuantityDiscountStrategy));
     }
 
     @Override

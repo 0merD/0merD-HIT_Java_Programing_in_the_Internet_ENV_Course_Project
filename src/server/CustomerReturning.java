@@ -1,7 +1,8 @@
 package server;
 
+import server.enums.CustomerTypeEnum;
+
 import java.util.HashMap;
-import java.util.Map;
 
 public class CustomerReturning extends CustomerAbstract{
 

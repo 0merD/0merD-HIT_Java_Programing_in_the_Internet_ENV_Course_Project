@@ -1,4 +1,4 @@
-package server;
-
-public class EmployeManager {
-}
+//package server;
+//
+//public class EmployeManager {
+//}

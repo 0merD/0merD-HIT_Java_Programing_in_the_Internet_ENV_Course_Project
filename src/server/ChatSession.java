@@ -10,17 +10,17 @@ import java.util.Vector;
  */
 public class ChatSession {
     // These two are final and represent the original chat parties for logging purposes.
-    final SocketData client1;
-    final SocketData client2;
+    final ConnectedClient client1;
+    final ConnectedClient client2;
 
     // This vector holds all current participants, including any joined managers.
-    private final Vector<SocketData> participants = new Vector<>();
+    private final Vector<ConnectedClient> participants = new Vector<>();
     final Date startTime;
     Date endTime;
     final StringBuilder chatContent;
     volatile boolean saveChatLog;
 
-    public ChatSession(SocketData client1, SocketData client2) {
+    public ChatSession(ConnectedClient client1, ConnectedClient client2) {
         this.client1 = client1;
         this.client2 = client2;
         this.participants.add(client1);
@@ -30,22 +30,22 @@ public class ChatSession {
         this.saveChatLog = false;
     }
 
-    public void addParticipant(SocketData member) {
+    public void addParticipant(ConnectedClient member) {
         if (!participants.contains(member)) {
             participants.add(member);
         }
     }
 
-    public void removeParticipant(SocketData member) {
+    public void removeParticipant(ConnectedClient member) {
         participants.remove(member);
     }
 
-    public Vector<SocketData> getParticipants() {
+    public Vector<ConnectedClient> getParticipants() {
         return participants;
     }
 
     // ... existing code ...
-    public void appendMessage(SocketData sender, String message) {
+    public void appendMessage(ConnectedClient sender, String message) {
         String logEntry = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
                 .format(new Date()) + " " + sender.getName() + ": " + message + "\n";
         this.chatContent.append(logEntry);
@@ -56,11 +56,11 @@ public class ChatSession {
         this.endTime = new Date();
     }
 
-    public SocketData getClient1() {
+    public ConnectedClient getClient1() {
         return client1;
     }
 
-    public SocketData getClient2() {
+    public ConnectedClient getClient2() {
         return client2;
     }
 }

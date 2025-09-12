@@ -12,8 +12,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class JsonProductsDataProvider implements ProductsDataProvider {
 
     private final Path filePath = Paths.get("resources","products.json");

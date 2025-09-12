@@ -1,14 +1,12 @@
 package server;
 
-import server.UserFactory;
-import shared.UserType;
+import server.enums.UserType;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 

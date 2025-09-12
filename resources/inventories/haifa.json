@@ -1,8 +1,26 @@
 [
-  { "productIdentifier": "P001", "quantity": 70 },
-  { "productIdentifier": "P002", "quantity": 40 },
-  { "productIdentifier": "P003", "quantity": 25 },
-  { "productIdentifier": "P004", "quantity": 55 },
-  { "productIdentifier": "P005", "quantity": 90 },
-  { "productIdentifier": "P006", "quantity": 50 }
+  {
+    "productIdentifier": "P001",
+    "quantity": 60
+  },
+  {
+    "productIdentifier": "P002",
+    "quantity": 40
+  },
+  {
+    "productIdentifier": "P003",
+    "quantity": 25
+  },
+  {
+    "productIdentifier": "P004",
+    "quantity": 55
+  },
+  {
+    "productIdentifier": "P005",
+    "quantity": 90
+  },
+  {
+    "productIdentifier": "P006",
+    "quantity": 50
+  }
 ]

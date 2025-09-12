@@ -1,4 +1,4 @@
-package server;
+package server.enums;
 
 public enum CustomerTypeEnum {
     New,

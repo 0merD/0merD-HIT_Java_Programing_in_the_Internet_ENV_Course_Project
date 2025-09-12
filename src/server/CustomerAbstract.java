@@ -1,6 +1,6 @@
 package server;
 
-import java.util.Map;
+import server.enums.CustomerTypeEnum;
 
 public abstract class CustomerAbstract {
 

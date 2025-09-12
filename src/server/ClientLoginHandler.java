@@ -1,7 +1,8 @@
 package server;
 
-import shared.OperationTypeEnum;
-import shared.UserType;
+import server.enums.CustomerTypeEnum;
+import server.enums.OperationTypeEnum;
+import server.enums.UserType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,17 +28,18 @@ public class ClientLoginHandler extends Thread {
 
     // Chat runtime bridge
     private final ServerState serverState;
-    private final CommandHandler chatCommandHandler;
-    private final SocketData socketData;
+    private final ChatCommandHandler chatCommandHandler;
+    private final ConnectedClient connectedClient;
 
     private User loggedInUser;
-    private volatile boolean inChatMode = false; // chat session input mode
+    //private volatile boolean inChatMode = false; // chat session input mode
+
 
     public ClientLoginHandler(Socket socket, ServerState serverState) {
         this.socket = socket;
         this.serverState = serverState;
-        this.chatCommandHandler = new CommandHandler(serverState);
-        this.socketData = new SocketData(socket);
+        this.chatCommandHandler = new ChatCommandHandler(serverState);
+        this.connectedClient = new ConnectedClient(socket);
 
         initOperationHandlers();
     }
@@ -79,7 +81,7 @@ public class ClientLoginHandler extends Thread {
 
             // Enrich SocketData with authenticated user info and register in ServerState
             applyAuthenticatedUserToSocketData(loggedInUser);
-            serverState.addClient(socketData);
+            serverState.addClient(connectedClient);
 
             runUserSession(loggedInUser, input, output);
 
@@ -89,21 +91,21 @@ public class ClientLoginHandler extends Thread {
         } finally {
             // ensure cleanup in chat layer
             try {
-                chatCommandHandler.handleDisconnection(socketData);
-                serverState.removeClient(socketData);
+                chatCommandHandler.handleDisconnection(connectedClient);
+                serverState.removeClient(connectedClient);
             } catch (Exception ignored) { }
         }
     }
 
     private void applyAuthenticatedUserToSocketData(User user) {
         if (user != null) {
-            socketData.setUserType(user.getUserType());
-            socketData.setBranchNumber(user.getBranchNumber());
+            connectedClient.setUserType(user.getUserType());
+            // socketData.setBranchNumber(user.getBranchNumber());
             String branchName = InventoryManager.getInstance().getBranchCityByNumber(user.getBranchNumber());
             String displayName = user.getUsername() + "@" + (branchName != null ? branchName : "unknown");
-            socketData.setName(displayName);
+            connectedClient.setName(displayName);
         } else {
-            socketData.setUserType(UserType.BasicWorker);
+            connectedClient.setUserType(UserType.BasicWorker);
         }
     }
 
@@ -119,7 +121,7 @@ public class ClientLoginHandler extends Thread {
 
         while (isUserMakingRequests) {
             // If chat mode is active, run chat loop (free text) until user leaves chat
-            if (inChatMode) {
+            if (connectedClient.isInChatMode()) {
                 runChatLoop(input, output);
                 continue;
             }
@@ -191,19 +193,21 @@ public class ClientLoginHandler extends Thread {
     // Chat-mode loop: send raw lines to CommandHandler until "goodbye"
     private void runChatLoop(BufferedReader input, PrintWriter output) throws IOException {
         output.println("You are now in chat mode. Type your message, or 'goodbye' to leave chat or chat mode, or 'savechat' to save.");
-        while (inChatMode) {
+
+        while (connectedClient.isInChatMode()) {
             String line = input.readLine();
             if (line == null) {
                 break; // socket closing
             }
             String trimmed = line.trim();
             // Delegate to existing chat command processor
-            chatCommandHandler.handle(socketData, trimmed);
+            chatCommandHandler.handle(connectedClient, trimmed);
             if ("goodbye".equalsIgnoreCase(trimmed)) {
                 // CommandHandler will end session and make user available; reflect locally
-                inChatMode = false;
+                connectedClient.setInChatMode(false);
             }
         }
+
         output.println("Exited chat mode.");
     }
 
@@ -211,22 +215,26 @@ public class ClientLoginHandler extends Thread {
 
     private void handleViewAvailableToChat(BufferedReader input, PrintWriter output) {
         // maps to "list"
-        chatCommandHandler.handle(socketData, "list");
+        chatCommandHandler.handle(connectedClient, "list");
     }
 
     private void handleViewCurrentOpenChats(BufferedReader input, PrintWriter output) {
-        // maps to "listall"
-        chatCommandHandler.handle(socketData, "listall");
+        chatCommandHandler.handle(connectedClient, "listall");
     }
 
     private void handleRequestChat(BufferedReader input, PrintWriter output) {
+
         try {
             output.println("Enter target client name (username@branch):");
             String targetName = input.readLine().trim();
-            chatCommandHandler.handle(socketData, "chat " + targetName);
-            // Enable chat mode so user can type immediately; CommandHandler will confirm/queue
-            inChatMode = true;
-            output.println("Waiting for participant to join... You can start typing messages.");
+            String userName = targetName.split("@")[0];
+            User user = UserManager.getInstance().getUserByUserName(userName);
+
+
+            chatCommandHandler.handle(connectedClient, "chat " + targetName);
+
+            output.println("Chat request sent. You will be notified when the participant responds.");
+
         } catch (IOException e) {
             output.println("Failed to request chat: " + e.getMessage());
         }
@@ -236,54 +244,86 @@ public class ClientLoginHandler extends Thread {
         try {
             output.println("Enter a participant (username@branch) of the active chat to join:");
             String joinTarget = input.readLine().trim();
-            chatCommandHandler.handle(socketData, "join " + joinTarget);
-            inChatMode = true;
+            chatCommandHandler.handle(connectedClient, "join " + joinTarget);
+            connectedClient.setInChatMode(true);
             output.println("Joining chat... You can start typing messages.");
         } catch (IOException e) {
             output.println("Failed to join chat: " + e.getMessage());
         }
     }
 
-    private void handleChatSendMessage(BufferedReader input, PrintWriter output) {
-        try {
-            if (!inChatMode) {
-                output.println("You are not in a chat. Use 'Request Chat' or 'Respond to Chat Invite' first.");
-                return;
-            }
-            output.println("Enter message to send:");
-            String msg = input.readLine();
-            chatCommandHandler.handle(socketData, msg);
-        } catch (IOException e) {
-            output.println("Failed to send message: " + e.getMessage());
-        }
-    }
-
-    private void handleChatGoodbye(BufferedReader input, PrintWriter output) {
-        chatCommandHandler.handle(socketData, "goodbye");
-        inChatMode = false;
-    }
+//    private void handleChatSendMessage(BufferedReader input, PrintWriter output) {
+//        try {
+//            if (!inChatMode) {
+//                output.println("You are not in a chat. Use 'Request Chat' or 'Respond to Chat Invite' first.");
+//                return;
+//            }
+//            output.println("Enter message to send:");
+//            String msg = input.readLine();
+//            chatCommandHandler.handle(socketData, msg);
+//        } catch (IOException e) {
+//            output.println("Failed to send message: " + e.getMessage());
+//        }
+//    }
+//
+//    private void handleChatGoodbye(BufferedReader input, PrintWriter output) {
+//        chatCommandHandler.handle(socketData, "goodbye");
+//        inChatMode = false;
+//    }
 
     private void handleSaveChat(BufferedReader input, PrintWriter output) {
-        chatCommandHandler.handle(socketData, "savechat");
+        chatCommandHandler.handle(connectedClient, "savechat");
     }
 
+//    private void handleChatInviteResponse(BufferedReader input, PrintWriter output) {
+//        try {
+//            output.println("Respond to chat invite (yes/no):");
+//            String response = input.readLine().trim().toLowerCase();
+//            if (!"yes".equals(response) && !"no".equals(response)) {
+//                output.println("Please answer 'yes' or 'no'.");
+//                return;
+//            }
+//            chatCommandHandler.handle(connectedClient, response);
+//            if ("yes".equals(response)) {
+//                inChatMode = true;
+//                output.println("Chat established. You can start typing messages.");
+//            }
+//        } catch (IOException e) {
+//            output.println("Failed to respond to invite: " + e.getMessage());
+//        }
+//    }
+
+
     private void handleChatInviteResponse(BufferedReader input, PrintWriter output) {
+        // Check if this client actually has a pending chat request
+        ConnectedClient requester = serverState.findRequesterFor(connectedClient);
+
+        if (requester == null) {
+            output.println("You have no pending chat invites.");
+            return; // exit early
+        }
+
         try {
-            output.println("Respond to chat invite (yes/no):");
+            output.println("Respond to chat invite from " + requester.getName() + " (yes/no):");
             String response = input.readLine().trim().toLowerCase();
-            if (!"yes".equals(response) && !"no".equals(response)) {
+
+            while (!"yes".equals(response) && !"no".equals(response)) {
                 output.println("Please answer 'yes' or 'no'.");
-                return;
+                output.println("Respond to chat invite from " + requester.getName() + " (yes/no):");
+                response = input.readLine().trim().toLowerCase();
             }
-            chatCommandHandler.handle(socketData, response);
+
+            chatCommandHandler.handle(connectedClient, response);
+
             if ("yes".equals(response)) {
-                inChatMode = true;
+                connectedClient.setInChatMode(true);
                 output.println("Chat established. You can start typing messages.");
             }
         } catch (IOException e) {
             output.println("Failed to respond to invite: " + e.getMessage());
         }
     }
+
 
     // ===== Business operations =====
 
@@ -494,7 +534,7 @@ public class ClientLoginHandler extends Thread {
 
     private void handleLogOut(BufferedReader input, PrintWriter output) {
         loggedInUser = null;
-        inChatMode = false;
+        connectedClient.setInChatMode(false);
         output.println("You have been logged out.");
         try {
             socket.close();

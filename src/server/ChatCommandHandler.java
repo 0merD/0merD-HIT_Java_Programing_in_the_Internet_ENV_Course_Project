@@ -1,18 +1,19 @@
 package server;
 
-import shared.UserType;
+import server.enums.UserType;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Vector;
 
-public class CommandHandler {
+public class ChatCommandHandler {
     private final ServerState serverState;
 
-    public CommandHandler(ServerState serverState) {
+    public ChatCommandHandler(ServerState serverState) {
         this.serverState = serverState;
     }
 
-    public void handle(SocketData client, String line) {
+    public void handle(ConnectedClient client, String line) {
         System.out.println("From client " + client.getClientAddress() + ": " + line);
         ChatSession session = client.getCurrentSession();
 
@@ -23,7 +24,7 @@ public class CommandHandler {
         }
     }
 
-    private void handleInChatCommands(SocketData client, ChatSession session, String line) {
+    private void handleInChatCommands(ConnectedClient client, ChatSession session, String line) {
         if (line.equalsIgnoreCase("goodbye")) {
             if (session.getParticipants().size() <= 2) {
                 endChatSession(session, true);
@@ -38,7 +39,7 @@ public class CommandHandler {
         }
     }
 
-    private void handleOutOfChatCommands(SocketData client, String line) {
+    private void handleOutOfChatCommands(ConnectedClient client, String line) {
         if (line.equalsIgnoreCase("list")) {
             sendAvailableClients(client);
         } else if (line.equalsIgnoreCase("listall")) {
@@ -60,7 +61,7 @@ public class CommandHandler {
         }
     }
 
-    public void handleDisconnection(SocketData client) {
+    public void handleDisconnection(ConnectedClient client) {
         ChatSession session = client.getCurrentSession();
         if (session != null) {
             if (session.getParticipants().size() <= 2) {
@@ -71,25 +72,45 @@ public class CommandHandler {
         }
     }
 
-    private void leaveChatSession(SocketData leaver, ChatSession session) {
+//    private void leaveChatSession(SocketData leaver, ChatSession session) {
+//        session.removeParticipant(leaver);
+//        leaver.setAvailable(true);
+//        leaver.setCurrentSession(null);
+//        leaver.setPendingRequestTo(null);
+//        String leaveMessage = "Participant " + leaver.getName() + " has left the chat.";
+//        session.getParticipants().forEach(member -> member.getOutputStream().println(leaveMessage));
+//
+//        // No need to remove/add from connections; user stays connected and available
+//        processNextInQueue(leaver);
+//    }
+
+    // --- Modification --- for leaving chat session - disconnect if only one participant remaining.
+    private void leaveChatSession(ConnectedClient leaver, ChatSession session) {
         session.removeParticipant(leaver);
         leaver.setAvailable(true);
         leaver.setCurrentSession(null);
         leaver.setPendingRequestTo(null);
+
         String leaveMessage = "Participant " + leaver.getName() + " has left the chat.";
         session.getParticipants().forEach(member -> member.getOutputStream().println(leaveMessage));
 
-        // No need to remove/add from connections; user stays connected and available
+        // Check if only one participant remains
+        if (session.getParticipants().size() == 1) {
+            ConnectedClient remaining = session.getParticipants().get(0);
+            remaining.getOutputStream().println("The other participant has disconnected. Chat session ending.");
+            endChatSession(session, false); // false: no need to notify again
+        }
+
         processNextInQueue(leaver);
     }
 
     private void endChatSession(ChatSession session, boolean notify) {
         ChatLogger.saveSessionToLog(session);
-        Vector<SocketData> membersToEnd = new Vector<>(session.getParticipants());
+        Vector<ConnectedClient> membersToEnd = new Vector<>(session.getParticipants());
 
         serverState.endSession(session);
 
-        for (SocketData member : membersToEnd) {
+        for (ConnectedClient member : membersToEnd) {
             if (notify && member.getSocket().isConnected()) {
                 member.getOutputStream().println("The chat session has ended. You are now available.");
             }
@@ -100,8 +121,9 @@ public class CommandHandler {
         }
     }
 
-    private void handleChatRequest(SocketData requester, String targetIdOrName) {
-        SocketData target = serverState.findClientById(targetIdOrName);
+    private void handleChatRequest(ConnectedClient requester, String targetIdOrName) {
+        ConnectedClient target = serverState.findClientById(targetIdOrName);
+
         if (target == null || target == requester) {
             requester.getOutputStream().println(target == null ? "Target not found." : "You cannot chat with yourself.");
             return;
@@ -118,8 +140,9 @@ public class CommandHandler {
         }
     }
 
-    private void handleJoinRequest(SocketData manager, String targetIdOrName) {
-        SocketData target = serverState.findClientById(targetIdOrName);
+
+    private void handleJoinRequest(ConnectedClient manager, String targetIdOrName) {
+        ConnectedClient target = serverState.findClientById(targetIdOrName);
         ChatSession session = (target != null) ? target.getCurrentSession() : null;
 
         if (session == null) {
@@ -143,16 +166,26 @@ public class CommandHandler {
                 .forEach(member -> member.getOutputStream().println(joinMsg));
     }
 
-    private void acceptChatRequest(SocketData replier) {
-        SocketData requester = serverState.findRequesterFor(replier);
+    private void acceptChatRequest(ConnectedClient replier) {
+        ConnectedClient requester = serverState.findRequesterFor(replier);
+
+
+
         if (requester != null) {
+
             requester.setPendingRequestTo(null);
 
             ChatSession session = new ChatSession(requester, replier);
+
+            requester.setInChatMode(true);
+            replier.setInChatMode(true);
+
             requester.setCurrentSession(session);
-            replier.setCurrentSession(session);
             requester.setAvailable(false);
+
+            replier.setCurrentSession(session);
             replier.setAvailable(false);
+
             serverState.startSession(session);
 
             String chatStartedMsg = "You are now in a private chat. Use 'goodbye' or 'savechat'.";
@@ -161,8 +194,8 @@ public class CommandHandler {
         }
     }
 
-    private void rejectChatRequest(SocketData replier) {
-        SocketData requester = serverState.findRequesterFor(replier);
+    private void rejectChatRequest(ConnectedClient replier) {
+        ConnectedClient requester = serverState.findRequesterFor(replier);
         if (requester != null) {
             requester.getOutputStream().println("Chat request rejected by " + replier.getName());
             requester.setAvailable(true);
@@ -174,9 +207,9 @@ public class CommandHandler {
         }
     }
 
-    private void processNextInQueue(SocketData freedClient) {
-        SocketData nextRequester = serverState.dequeueClient(freedClient);
-        if (nextRequester != null && serverState.getAllConnections().contains(nextRequester)) {
+    private void processNextInQueue(ConnectedClient freedClient) {
+        ConnectedClient nextRequester = serverState.dequeueClient(freedClient);
+        if (nextRequester != null && serverState.getAllConnectedClients().contains(nextRequester)) {
             freedClient.setAvailable(false);
             nextRequester.setAvailable(false);
             nextRequester.setPendingRequestTo(freedClient);
@@ -189,7 +222,7 @@ public class CommandHandler {
         }
     }
 
-    private void sendPrivateMessage(SocketData sender, String message) {
+    private void sendPrivateMessage(ConnectedClient sender, String message) {
         ChatSession session = sender.getCurrentSession();
         if (session == null) return;
         session.appendMessage(sender, message);
@@ -198,35 +231,66 @@ public class CommandHandler {
                 .forEach(receiver -> receiver.getOutputStream().println(sender.getName() + ": " + message));
     }
 
-    private void sendAvailableClients(SocketData requester) {
-        requester.getOutputStream().println("Available clients:");
-        serverState.getAllConnections().stream()
-                .filter(sd -> sd.isAvailable() && sd != requester)
-                .forEach(sd -> requester.getOutputStream().println(" - " + sd.getName()));
+//    private void sendAvailableClients(ConnectedClient requester) {
+//        requester.getOutputStream().println("Available clients:");
+//        serverState.getAllConnections().stream()
+//                .filter(sd -> sd.isAvailable() && sd != requester)
+//                .forEach(sd -> requester.getOutputStream().println(" - " + sd.getName()));
+//    }
+
+    private void sendAvailableClients(ConnectedClient requester) {
+        List<ConnectedClient> available = serverState.getAllConnectedClients().stream()
+                .filter(connectedClient -> connectedClient.isAvailable() && connectedClient != requester)
+                .toList(); // Java 16+ (otherwise use .collect(Collectors.toList()))
+
+        if (available.isEmpty()) {
+            requester.getOutputStream().println("No other person is connected currently.");
+        } else {
+            requester.getOutputStream().println("Available clients:");
+            available.forEach(sd -> requester.getOutputStream().println(" - " + sd.getName()));
+        }
     }
 
-    private void sendAllClients(SocketData requester) {
-        requester.getOutputStream().println("All connected clients:");
-        for (SocketData sd : serverState.getAllConnections()) {
-            if (sd == requester) continue;
-            if (sd.isAvailable()) {
-                requester.getOutputStream().println(" - " + sd.getName() + " (available)");
-            } else {
-                ChatSession s = sd.getCurrentSession();
-                String status;
-                if (s != null) {
-                    String participants = s.getParticipants().stream()
-                            .map(SocketData::getName)
-                            .collect(Collectors.joining(" <-> "));
-                    status = "in a chat: " + participants;
-                } else if (sd.getPendingRequestTo() != null) {
-                    status = "pending chat with " + sd.getPendingRequestTo().getName();
-                } else {
-                    status = "busy";
-                }
-                int queueSize = serverState.getQueueSize(sd);
-                requester.getOutputStream().println(" - " + sd.getName() + " (" + status + ", " + queueSize + " in queue)");
+//    private void sendAllClients(ConnectedClient requester) {
+//        requester.getOutputStream().println("All connected clients:");
+//        for (ConnectedClient sd : serverState.getAllConnections()) {
+//            if (sd == requester) continue;
+//            if (sd.isAvailable()) {
+//                requester.getOutputStream().println(" - " + sd.getName() + " (available)");
+//            } else {
+//                ChatSession s = sd.getCurrentSession();
+//                String status;
+//                if (s != null) {
+//                    String participants = s.getParticipants().stream()
+//                            .map(ConnectedClient::getName)
+//                            .collect(Collectors.joining(" <-> "));
+//                    status = "in a chat: " + participants;
+//                } else if (sd.getPendingRequestTo() != null) {
+//                    status = "pending chat with " + sd.getPendingRequestTo().getName();
+//                } else {
+//                    status = "busy";
+//                }
+//                int queueSize = serverState.getQueueSize(sd);
+//                requester.getOutputStream().println(" - " + sd.getName() + " (" + status + ", " + queueSize + " in queue)");
+//            }
+//        }
+//    }
+
+    private void sendAllClients(ConnectedClient requester) {
+        // --- Active chats ---
+        List<ChatSession> activeChats = serverState.getAllActiveChatSessionsWithoutDuplicates();
+
+        if (activeChats.isEmpty()) {
+            requester.getOutputStream().println("No active chats currently.");
+        } else {
+            requester.getOutputStream().println("Currently open chats:");
+            for (ChatSession session : activeChats) {
+                String participants = session.getParticipants().stream()
+                        .map(ConnectedClient::getName)
+                        .collect(Collectors.joining(" <-> "));
+                requester.getOutputStream().println(" - " + participants);
             }
         }
     }
+
 }

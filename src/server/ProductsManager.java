@@ -4,7 +4,9 @@ import java.util.List;
 
 public class ProductsManager {
 
-    private ProductsDataProvider dataProvider; // Current implementation uses json files, could be later replaced with DB
+    // Current implementation uses json files, could be later replaced with real DB (sql/mongo etc).
+    private ProductsDataProvider dataProvider;
+
 
     //Todo: make sure relevant methods are added a lock
     public ProductsManager(ProductsDataProvider dataProvider) {

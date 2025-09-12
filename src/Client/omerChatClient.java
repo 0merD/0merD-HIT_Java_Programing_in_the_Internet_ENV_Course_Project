@@ -17,7 +17,7 @@ public class omerChatClient {
         PrintStream toNetOutputStream;       // for sending data to server
 
         try {
-            socket = new Socket("localhost", 7000); // connect to server
+            socket = new Socket("localhost", 1234); // connect to server
             System.out.println(new Date() + " ---> Connected to server at " +
                     socket.getInetAddress() + ":" + socket.getPort());
 
@@ -30,8 +30,7 @@ public class omerChatClient {
                 try {
                     String serverMsg;
                     while ((serverMsg = fromNetInputStream.readLine()) != null) {
-                        System.out.println("\n[SERVER] " + serverMsg);
-                        System.out.print("> ");
+                        System.out.println("[SERVER] " + serverMsg);
                     }
                 } catch (IOException e) {
                     System.out.println("Connection to server lost.");
@@ -45,7 +44,6 @@ public class omerChatClient {
             // --- MODIFICATION HERE ---
             // The loop should continue indefinitely.
             while (true) {
-                System.out.print("> ");
                 line = consoleInput.readLine();
                 if (line == null) break;
 

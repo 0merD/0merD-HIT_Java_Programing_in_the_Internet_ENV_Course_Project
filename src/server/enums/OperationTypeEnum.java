@@ -1,4 +1,4 @@
-package shared;
+package server.enums;
 
 import java.util.EnumSet;
 
@@ -9,7 +9,7 @@ public enum OperationTypeEnum {
     MODIFY_USER_ROLE("3", "Modify User Role", EnumSet.of(UserType.Admin)),
 
     // ShiftManager only Operations
-    VIEW_CURRENT_OPEN_CHATS("4", "View Current Open Chats", EnumSet.of(UserType.ShiftManager)),
+    VIEW_CURRENT_OPEN_CHATS("4", "List Current Existing Chats", EnumSet.of(UserType.ShiftManager)),
     JOIN_EXISTING_CHAT("5", "Join Existing Chat", EnumSet.of(UserType.ShiftManager)),
 
     // ShiftManager + BasicWorker operations
@@ -41,23 +41,28 @@ public enum OperationTypeEnum {
     }
 
     public String getCode() {
+
         return code;
     }
 
     public String getDescription() {
+
         return description;
     }
 
     public EnumSet<UserType> getRequiredUserType() {
+
         return allowedRoles;
     }
 
     public static OperationTypeEnum getOperationType(String code) {
+
         for (OperationTypeEnum operationType : OperationTypeEnum.values()) {
             if (operationType.getCode().equals(code)) {
                 return operationType;
             }
         }
+
         return null;
     }
 }

@@ -1,4 +1,4 @@
-package shared;
+package server.enums;
 
 public enum UserType {
     Admin,

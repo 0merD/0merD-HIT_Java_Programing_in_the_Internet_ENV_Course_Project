@@ -1,6 +1,6 @@
 package server;
 
-import shared.UserType;
+import server.enums.UserType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,23 +8,34 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 
-public class SocketData {
+public class ConnectedClient {
     private Socket socket;
     private BufferedReader inputStream;
     private PrintStream outputStream;
     private String clientAddress;
     private boolean available = true;
     private String name;
+
+    public boolean isInChatMode() {
+        return inChatMode;
+    }
+
+    public void setInChatMode(boolean inChatMode) {
+        this.inChatMode = inChatMode;
+    }
+
+    private boolean inChatMode; // should be volatile?
+
     // ... existing code ...
     private ChatSession currentSession = null; // Reference to the current chat session
-    private SocketData pendingRequestTo = null; // Tracks an outgoing chat request
+    private ConnectedClient pendingRequestTo = null; // Tracks an outgoing chat request
     // ... existing code ...
 
     // Add user metadata so CommandHandler can read the user type
     private UserType userType = null;
     private Integer branchNumber = null;
 
-    public SocketData(Socket socket) {
+    public ConnectedClient(Socket socket) {
         this.socket = socket;
         try {
             inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -76,11 +87,11 @@ public class SocketData {
         this.currentSession = currentSession;
     }
 
-    public SocketData getPendingRequestTo() {
+    public ConnectedClient getPendingRequestTo() {
         return pendingRequestTo;
     }
 
-    public void setPendingRequestTo(SocketData pendingRequestTo) {
+    public void setPendingRequestTo(ConnectedClient pendingRequestTo) {
         this.pendingRequestTo = pendingRequestTo;
     }
 
