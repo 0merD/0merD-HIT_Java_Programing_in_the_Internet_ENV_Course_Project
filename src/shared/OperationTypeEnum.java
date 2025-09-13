@@ -17,7 +17,7 @@ public enum OperationTypeEnum {
     ADD_CUSTOMER("7", "Add Customer", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
 
     VIEW_BRANCH_INVENTORY("6", "View Branch Inventory",  EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
-    VIEW_PRODUCT_PRICE("8", "View Product Price", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
+    VIEW_PRODUCT_PRICE("8", "View Products Price", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
 
     VIEW_AVAILABLE_TO_CHAT("8", "View Available To Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),
     REQUEST_CHAT("8", "Request Chat", EnumSet.of(UserType.ShiftManager, UserType.BasicWorker)),

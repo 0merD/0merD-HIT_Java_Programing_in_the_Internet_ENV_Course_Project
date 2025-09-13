@@ -181,6 +181,13 @@ public class UserManager {
         return users.get(username); // returns null if key not in Map
     }
 
+    public List<User> getAllUsers() {
+        synchronized (lockUsersFile) {
+            // Return a copy of the user list to avoid external modification
+            return new ArrayList<>(users.values());
+
+        }
+    }
 
     // Helper class for JSON mapping
     private static class UserJson {

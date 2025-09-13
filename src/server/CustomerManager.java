@@ -119,6 +119,12 @@ public class CustomerManager implements CustomerStorage {
         return new ArrayList<>(customers.values());
     }
 
+    // returns null if invalid customerId
+    public CustomerAbstract getCustomerById(String customerId) {
+
+        return customers.get(customerId);
+    }
+
 
     // Helper class for JSON mapping
     private static class CustomerJson {
@@ -147,28 +153,4 @@ public class CustomerManager implements CustomerStorage {
             );
         }
     }
-
-    //Todo: delete this main
-    public static void main(String[] args) {
-        CustomerManager manager = CustomerManager.getInstance();
-
-        // Load customer C001
-
-        List<CustomerAbstract> lst =manager.getAllCustomers();
-        CustomerAbstract noam = lst.stream()
-                .filter(c -> c.getCustId().equals("C001")) // condition
-                .findFirst()                               // returns Optional<CustomerAbstract>
-                .orElse(null);
-
-        // Register a purchase that should trigger promotion
-        double purchaseAmount = 160.0;  // totalSpent goes from 50 -> 210
-        noam.addSpent(purchaseAmount);
-        CustomerManager.promoteCustomer(noam);
-
-        System.out.println("After purchase: " + noam);
-
-        // Save changes to JSON
-        manager.saveCustomers(manager.getAllCustomers());
-    }
-
 }

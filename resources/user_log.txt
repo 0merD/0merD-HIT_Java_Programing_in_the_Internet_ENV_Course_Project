@@ -1,0 +1,7 @@
+2025-09-13 11:21:03 | Action: Add User | Username: N/A | UserType: N/A | Status: FAILED
+2025-09-13 11:21:40 | Action: Add User | Username: N/A | UserType: N/A | Status: FAILED
+2025-09-13 11:22:27 | Action: Add User | Username: N/A | UserType: N/A | Status: FAILED
+2025-09-13 11:23:08 | Action: Add User | Username: N/A | UserType: N/A | Status: FAILED
+2025-09-13 11:23:23 | Action: Add User | Username: N/A | UserType: N/A | Status: FAILED
+2025-09-13 11:24:00 | Action: Add User | Username: noamseifer | UserType: BasicWorker | Status: SUCCESS
+2025-09-13 11:33:56 | Action: Delete User | Username: noamseifer | UserType: ShiftManager | Status: SUCCESS

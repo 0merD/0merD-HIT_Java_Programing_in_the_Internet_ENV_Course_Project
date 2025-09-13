@@ -1,0 +1,78 @@
+=== Chat Session ===
+Participants: basic@haifa <-> avraham@jerusalem
+Start: 2025-09-11 12:54:41
+End:   2025-09-11 12:56:27
+SavedContent: yes
+--- Transcript Start ---
+2025-09-11 12:54:50 avraham@jerusalem: hello
+2025-09-11 12:54:57 avraham@jerusalem: how are you?
+2025-09-11 12:55:18 basic@haifa: yes
+2025-09-11 12:55:26 basic@haifa: hello
+2025-09-11 12:55:44 basic@haifa: this is haifa talking
+2025-09-11 12:55:55 basic@haifa: can you help me with something?
+2025-09-11 12:56:05 avraham@jerusalem: sure - what's the problem?
+--- Transcript End ---
+
+=== Chat Session ===
+Participants: avraham@jerusalem <-> noam@telaviv
+Start: 2025-09-11 14:35:56
+End:   2025-09-11 14:37:23
+SavedContent: no
+
+=== Chat Session ===
+Participants: basic@haifa <-> avraham@jerusalem
+Start: 2025-09-11 15:01:13
+End:   2025-09-11 15:01:31
+SavedContent: no
+
+=== Chat Session ===
+Participants: noam@telaviv <-> basic@haifa
+Start: 2025-09-11 15:15:00
+End:   2025-09-11 15:15:31
+SavedContent: no
+
+=== Chat Session ===
+Participants: basic@haifa <-> noam@telaviv
+Start: 2025-09-12 14:35:12
+End:   2025-09-12 14:53:28
+SavedContent: no
+
+=== Chat Session ===
+Participants: noam@telaviv <-> avraham@jerusalem
+Start: 2025-09-12 15:12:38
+End:   2025-09-12 15:13:43
+SavedContent: no
+
+=== Chat Session ===
+Participants: basic@haifa <-> noam@telaviv
+Start: 2025-09-12 18:35:43
+End:   2025-09-12 18:37:44
+SavedContent: no
+
+=== Chat Session ===
+Participants: basic@haifa <-> noam@telaviv
+Start: 2025-09-12 18:38:35
+End:   2025-09-12 18:50:05
+SavedContent: no
+
+=== Chat Session ===
+Participants: basic@haifa <-> noam@telaviv
+Start: 2025-09-12 20:26:24
+End:   2025-09-12 20:26:46
+SavedContent: no
+
+=== Chat Session ===
+Participants: basic@haifa <-> noam@telaviv
+Start: 2025-09-12 20:45:52
+End:   2025-09-12 20:49:58
+SavedContent: no
+
+=== Chat Session ===
+Participants: avraham@jerusalem <-> basic@haifa
+Start: 2025-09-12 20:51:36
+End:   2025-09-12 20:52:25
+SavedContent: yes
+--- Transcript Start ---
+2025-09-12 20:51:42 basic@haifa: hello
+--- Transcript End ---
+
