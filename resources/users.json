@@ -4,8 +4,8 @@
     "id": "U001",
     "password": "pass",
     "email": "encrico@gmail.com",
-    "branchNumber": 1,
     "accountNumber": "9999",
+    "branchNumber": 1,
     "userType": "Admin"
   },
   {
@@ -13,8 +13,8 @@
     "id": "U002",
     "password": "abc",
     "email": "avraham@gmail.com",
-    "branchNumber": 3,
     "accountNumber": "9999",
+    "branchNumber": 3,
     "userType": "ShiftManager"
   },
   {

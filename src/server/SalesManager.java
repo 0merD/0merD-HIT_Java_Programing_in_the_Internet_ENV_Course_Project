@@ -23,7 +23,7 @@ public class SalesManager {
 
         Integer branchNumber = saleRequest.getBranchNumber();
         String productId = saleRequest.getProductId();
-        Integer  quantity = saleRequest.getQuantity();
+        int quantity = saleRequest.getQuantity();
 
 
         // 1. Validate product exists
@@ -45,6 +45,8 @@ public class SalesManager {
 
         OrderDetails orderDetails = new OrderDetails(originalPrice, branchNumber, customer);
         double discountedPrice = customer.applyBestDiscount(orderDetails);
+
+        customer.addSpent(discountedPrice);
 
         salesResult.setOriginalPrice(originalPrice);
         salesResult.setDiscountApplied(originalPrice-discountedPrice);

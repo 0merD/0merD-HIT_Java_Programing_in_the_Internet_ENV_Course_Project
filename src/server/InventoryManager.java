@@ -16,7 +16,7 @@ public class InventoryManager {
     private final String INVENTORY_DIR = "resources/inventories/";
 
     // <BranchNumber, BranchFileName>
-    private static final Map<Integer, String> branchNumberToCity = new HashMap<>();
+    private static final Map<Integer, String> BRANCH_NUMBER_TO_CITY = new HashMap<>();
 
     private static InventoryManager instance; // Singleton Instance
 
@@ -27,11 +27,11 @@ public class InventoryManager {
 
     // Initialize the branches and the concurrency locks
     private InventoryManager() {
-        branchNumberToCity.put(1, "telaviv");
-        branchNumberToCity.put(2, "haifa");
-        branchNumberToCity.put(3, "jerusalem");
+        BRANCH_NUMBER_TO_CITY.put(1, "telaviv");
+        BRANCH_NUMBER_TO_CITY.put(2, "haifa");
+        BRANCH_NUMBER_TO_CITY.put(3, "jerusalem");
 
-        for (Map.Entry<Integer, String> entry : branchNumberToCity.entrySet()) {
+        for (Map.Entry<Integer, String> entry : BRANCH_NUMBER_TO_CITY.entrySet()) {
             String city = entry.getValue();
             fileLocks.put(city, new Object());
         }
@@ -45,17 +45,20 @@ public class InventoryManager {
         return instance;
     }
 
+    public static boolean branchExists(int branch) {
+        return BRANCH_NUMBER_TO_CITY.containsKey(branch);
+    }
+
     // ... existing code ...
     // Added: provide branch city name for external use (chat display names)
     public String getBranchCityByNumber(Integer branchNumber) {
         if (branchNumber == null) return null;
-        return branchNumberToCity.get(branchNumber);
+        return BRANCH_NUMBER_TO_CITY.get(branchNumber);
     }
 // ... existing code ...
 
-
     public List<InventoryItem> getInventoryByCity(Integer branchNumber) {
-        String cityName = branchNumberToCity.get(branchNumber);
+        String cityName = BRANCH_NUMBER_TO_CITY.get(branchNumber);
         File file = new File(INVENTORY_DIR + cityName + ".json");
 
         if (!file.exists()) {
@@ -78,7 +81,7 @@ public class InventoryManager {
             throw new IllegalArgumentException(productId + " doesn't exist");
         }
 
-        String city = branchNumberToCity.get(branchNumber);
+        String city = BRANCH_NUMBER_TO_CITY.get(branchNumber);
 
         if (city == null) {
             throw new IllegalArgumentException("Unknown branch number: " + branchNumber);
@@ -106,6 +109,8 @@ public class InventoryManager {
         }
     }
 
+
+
     public boolean hasSufficientStock(Integer branchNumber, String productId, int qty) {
         boolean hasSufficientStock = false;
         List<InventoryItem> inventory = getInventoryByCity(branchNumber);
@@ -123,7 +128,7 @@ public class InventoryManager {
     public void addStock(Integer branchNumber, String productId, int qty) throws IOException {
         if (qty <= 0) throw new IllegalArgumentException("Quantity must be positive");
 
-        String city = branchNumberToCity.get(branchNumber);
+        String city = BRANCH_NUMBER_TO_CITY.get(branchNumber);
         String path = getBranchFilePath(branchNumber);
 
         synchronized (getBranchLock(city)) {
@@ -153,6 +158,7 @@ public class InventoryManager {
     }
 
     private String getBranchFilePath(Integer branchNumber) {
-        return  INVENTORY_DIR + branchNumberToCity.get(branchNumber);
+        return  INVENTORY_DIR + BRANCH_NUMBER_TO_CITY.get(branchNumber);
     }
 }
+

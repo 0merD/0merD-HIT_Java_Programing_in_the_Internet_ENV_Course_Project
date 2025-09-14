@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Date;
-import java.util.Scanner;
 
 public class omerChatClient {
 

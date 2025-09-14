@@ -8,6 +8,13 @@ public class SalesRequest {
     private int quantity;
     private CustomerAbstract customer;
 
+    public SalesRequest(int branchNumber, String productId, int quantity, CustomerAbstract customer) {
+        this.branchNumber = branchNumber;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.customer = customer;
+    }
+
     public void setBranchNumber(int branchNumber) {
         this.branchNumber = branchNumber;
     }
