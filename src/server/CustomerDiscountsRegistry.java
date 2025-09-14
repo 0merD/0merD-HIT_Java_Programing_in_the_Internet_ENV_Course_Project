@@ -1,5 +1,8 @@
 package server;
 
+import server.discountstrategies.DiscountStrategyNoDiscount;
+import server.discountstrategies.StrategyDiscount;
+
 import java.util.HashMap;
 import java.util.Map;
 

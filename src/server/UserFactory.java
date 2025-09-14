@@ -1,6 +1,9 @@
 package server;
 
 import server.enums.UserType;
+import server.usertypes.Admin;
+import server.usertypes.BasicWorker;
+import server.usertypes.ShiftManager;
 
 public class UserFactory {
 

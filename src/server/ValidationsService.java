@@ -1,12 +1,15 @@
 package server;
 
-import shared.UserType;
+import server.customertypes.CustomerAbstract;
+import server.enums.CustomerTypeEnum;
+import server.enums.UserType;
+import server.managers.CustomerManager;
+import server.managers.InventoryManager;
+import server.managers.UserManager;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 
 public class ValidationsService {
 
@@ -29,7 +32,7 @@ public class ValidationsService {
 
             String custId = "C" + (CustomerManager.getInstance().getAllCustomers().size() + 1);
 
-            return CustomerFactory.createCustomer(custId, fullName, phoneNumber, customerType,0);
+            return CustomerFactory.createCustomer(fullName, custId, phoneNumber, customerType,0);
 
         } catch (IllegalArgumentException e) {
             output.println("Validation error: " + e.getMessage());

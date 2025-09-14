@@ -1,5 +1,7 @@
 package server;
 
+import server.customertypes.CustomerAbstract;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,10 +9,11 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class LogAction {
+public class BusinessLogger {
 
-    private static final String USER_LOG_FILE = "resources/user_log.txt";
-    private static final String CUSTOMER_LOG_FILE = "resources/customer_log.txt";
+    private static final String USER_LOG_FILE = "logs/user_log.txt";
+    private static final String CUSTOMER_LOG_FILE = "logs/customer_log.txt";
+    private static final String SALES_LOG_FILE = "logs/sales_log.txt";
 
     // Ensure directories exist
     static {
@@ -42,6 +45,7 @@ public class LogAction {
         writeLog(USER_LOG_FILE, logEntry);
     }
 
+    // Not in requirements but we still thought to include this in the submission.
     public static void logUserRoleChange(String username, String oldRole, String newRole, String status) {
         String logEntry = String.format(
                 "%s | Action: Update User Role | Username: %s | OldType: %s | NewType: %s | Status: %s",
@@ -50,12 +54,14 @@ public class LogAction {
         writeLog(USER_LOG_FILE, logEntry);
     }
 
+
+
     public static void logUserFailure(String action) {
         logUserAction(action, "N/A", "N/A", "FAILED");
     }
 
     // ---------- CUSTOMER LOGS ----------
-    public static void logCustomerAction(String action, String custId, String custType, String status) {
+    public static void logAddCustomer(String action, String custId, String custType, String status) {
         String logEntry = String.format(
                 "%s | Action: %s | CustomerID: %s | CustomerType: %s | Status: %s",
                 timestamp(), action, custId, custType, status
@@ -64,6 +70,19 @@ public class LogAction {
     }
 
     public static void logCustomerFailure(String action) {
-        logCustomerAction(action, "N/A", "N/A", "FAILED");
+        logAddCustomer(action, "N/A", "N/A", "FAILED");
+    }
+
+    // ---------- SALES LOG ------------------
+    public static void logSalesAction(CustomerAbstract customer, SalesResult salesResult, OrderDetails orderDetails) {
+        String logEntry = String.format("%s | Customer Name: %s | Product Name: %s | Quantity: %s | Succesfull Sale: %s | Discount Applied: %s | Final Price: %s",
+                timestamp(),
+                customer.getFullName(),
+                orderDetails.getProduct().getName(),
+                orderDetails.getQuantity(),
+                salesResult.isSuccess(),
+                salesResult.getDiscountApplied(),
+                salesResult.getFinalPrice());
+        writeLog(SALES_LOG_FILE, logEntry);
     }
 }

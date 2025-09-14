@@ -1,5 +1,9 @@
-package server;
+package server.customertypes;
 
+import server.CustomerDiscountsRegistry;
+import server.discountstrategies.DiscountStrategyNoDiscount;
+import server.discountstrategies.DiscountStrategyQuantity;
+import server.OrderDetails;
 import server.enums.CustomerTypeEnum;
 
 import java.util.HashMap;

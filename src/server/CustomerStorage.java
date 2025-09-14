@@ -1,5 +1,7 @@
 package server;
 
+import server.customertypes.CustomerAbstract;
+
 import java.util.List;
 
 public interface CustomerStorage {

@@ -1,4 +1,6 @@
-package server;
+package server.discountstrategies;
+
+import server.OrderDetails;
 
 public interface StrategyDiscount {
 

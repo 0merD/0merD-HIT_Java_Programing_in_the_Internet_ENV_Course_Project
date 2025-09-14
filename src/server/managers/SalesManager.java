@@ -1,4 +1,7 @@
-package server;
+package server.managers;
+
+import server.*;
+import server.customertypes.CustomerAbstract;
 
 public class SalesManager {
     private static SalesManager instance;
@@ -43,7 +46,7 @@ public class SalesManager {
         CustomerAbstract customer = saleRequest.getCustomer();
         double originalPrice = ProductsCatalog.getProductPrice(productId) * quantity;
 
-        OrderDetails orderDetails = new OrderDetails(originalPrice, branchNumber, customer);
+        OrderDetails orderDetails = new OrderDetails(originalPrice, quantity, customer, ProductsCatalog.getProduct(productId));
         double discountedPrice = customer.applyBestDiscount(orderDetails);
 
         customer.addSpent(discountedPrice);
@@ -56,6 +59,7 @@ public class SalesManager {
         try {
             inventoryManager.reduceStock(branchNumber, productId, quantity);
             salesResult.setSuccess(true);
+            BusinessLogger.logSalesAction(customer,salesResult,orderDetails);
             salesResult.setMessage("Sale processed successfully");
         } catch (Exception e) {
             salesResult.setSuccess(false);

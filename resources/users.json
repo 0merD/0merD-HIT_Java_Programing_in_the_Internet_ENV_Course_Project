@@ -1,29 +1,21 @@
 [
   {
-    "username": "enrico",
-    "id": "U001",
-    "password": "pass",
-    "email": "encrico@gmail.com",
-    "accountNumber": "9999",
+    "username": "omer",
+    "id": "300908765",
+    "password": "pass!A123",
+    "email": "omer@gmail.com",
+    "phoneNumber": "0587987654",
+    "accountNumber": "1234",
     "branchNumber": 1,
-    "userType": "Admin"
-  },
-  {
-    "username": "avraham",
-    "id": "U002",
-    "password": "abc",
-    "email": "avraham@gmail.com",
-    "accountNumber": "9999",
-    "branchNumber": 3,
     "userType": "ShiftManager"
   },
   {
-    "username": "basic",
-    "id": "U003",
-    "password": "1234",
-    "email": "basic@gmail.com",
-    "phoneNumber": "0547738844",
-    "accountNumber": "9876",
+    "username": "david",
+    "id": "300406961",
+    "password": "avid123!@#A",
+    "email": "david@gmail.com",
+    "phoneNumber": "0547876543",
+    "accountNumber": "1234",
     "branchNumber": 2,
     "userType": "BasicWorker"
   },
@@ -36,5 +28,43 @@
     "accountNumber": "1",
     "branchNumber": 1,
     "userType": "BasicWorker"
+  },
+  {
+    "username": "basic",
+    "id": "U003",
+    "password": "1234",
+    "email": "basic@gmail.com",
+    "phoneNumber": "0547738844",
+    "accountNumber": "9876",
+    "branchNumber": 2,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "avraham",
+    "id": "U002",
+    "password": "abc",
+    "email": "avraham@gmail.com",
+    "accountNumber": "9999",
+    "branchNumber": 3,
+    "userType": "ShiftManager"
+  },
+  {
+    "username": "Antiomer",
+    "id": "207443003",
+    "password": "D4n13l20202020!",
+    "email": "omerdr3@gmail.com",
+    "phoneNumber": "0544444444",
+    "accountNumber": "167394",
+    "branchNumber": 2,
+    "userType": "BasicWorker"
+  },
+  {
+    "username": "enrico",
+    "id": "300408987",
+    "password": "pass",
+    "email": "encrico@gmail.com",
+    "accountNumber": "9999",
+    "branchNumber": 1,
+    "userType": "Admin"
   }
 ]

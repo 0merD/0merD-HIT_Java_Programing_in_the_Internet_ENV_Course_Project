@@ -1,8 +1,13 @@
-package server;
+package server.managers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import server.BusinessLogger;
+import server.CustomerFactory;
+import server.CustomerStorage;
+import server.ThresholdConsts;
+import server.customertypes.CustomerAbstract;
 import server.enums.CustomerTypeEnum;
 
 import java.io.FileReader;
@@ -21,6 +26,7 @@ public class CustomerManager implements CustomerStorage {
     private static CustomerManager instance;
 
     private static int nextCustomerId = 1;
+    private final Object CUSTOMER_LOGS_LOCK = new Object();
 
     private final Path FILE_PATH = Paths.get("resources", "customers.json");
 
@@ -106,12 +112,15 @@ public class CustomerManager implements CustomerStorage {
     }
 
     public void addCustomer(CustomerAbstract customer) {
-
-        if (!customers.containsKey(customer.getCustId())) {
-            customers.put(customer.getCustId(), customer);
-            saveCustomers(getAllCustomers());
-        } else {
-            System.out.println("Customer with ID " + customer.getCustId() + " already exists. Skipping.");
+        synchronized (CUSTOMER_LOGS_LOCK) {
+            if (!customers.containsKey(customer.getCustId())) {
+                customers.put(customer.getCustId(), customer);
+                BusinessLogger.logAddCustomer("Add Customer", customer.getCustId(), customer.getCustomerType().name(), "Success");
+                saveCustomers(getAllCustomers());
+            } else {
+                System.out.println("Customer with ID " + customer.getCustId() + " already exists. Skipping.");
+                BusinessLogger.logAddCustomer("Add Customer", customer.getCustId(), customer.getCustomerType().name(), "Failed");
+            }
         }
     }
 

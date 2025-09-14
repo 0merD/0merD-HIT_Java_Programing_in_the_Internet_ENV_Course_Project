@@ -1,4 +1,7 @@
-package server;
+package server.managers;
+
+import server.Product;
+import server.ProductsDataProvider;
 
 import java.util.List;
 

@@ -1,5 +1,9 @@
 package server;
 
+import server.customertypes.CustomerAbstract;
+import server.customertypes.CustomerNew;
+import server.customertypes.CustomerReturning;
+import server.customertypes.CustomerVip;
 import server.enums.CustomerTypeEnum;
 
 public class CustomerFactory {

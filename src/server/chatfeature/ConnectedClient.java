@@ -1,4 +1,4 @@
-package server;
+package server.chatfeature;
 
 import server.enums.UserType;
 

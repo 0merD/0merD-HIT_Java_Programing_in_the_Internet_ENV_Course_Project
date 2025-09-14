@@ -1,5 +1,7 @@
 package server;
 
+import server.customertypes.CustomerAbstract;
+
 // Data Transfer Object
 public class SalesRequest {
 

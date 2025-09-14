@@ -1,5 +1,7 @@
-package server;
+package server.managers;
 
+import server.User;
+import server.UserFactory;
 import server.enums.UserType;
 
 import java.io.FileReader;
@@ -7,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +28,7 @@ public class UserManager {
     // Singleton
     private static UserManager instance;
 
-    // <Key, Value> = <username, User>
+    // <Key, Value> = <usedID, User>
     private Map<String, User> users = new HashMap<>();
 
     private final Object lockUsersFile = new Object();
@@ -137,7 +140,7 @@ public class UserManager {
                         u.accountNumber,
                         u.branchNumber);
                 if (user != null) {
-                    users.put(u.username, user);
+                    users.put(user.getId(), user);
                 }
             }
 
@@ -161,9 +164,10 @@ public class UserManager {
         }
     }
 
-    public static boolean authenticate(String username, String password) {
+    public static boolean authenticate(String usedId, String password) {
         boolean authenticated = true;
-        User user = instance.getUserByUserName(username);
+        //User user = instance.getUserByUserName(usedId);
+        User user = UserManager.getInstance().getUserByUserId(usedId);
 
         if (user == null)
         {
@@ -178,6 +182,10 @@ public class UserManager {
 
     public User getUserByUserName(String username) {
         return users.get(username); // returns null if key not in Map
+    }
+
+    public User getUserByUserId(String userId) {
+        return users.get(userId);
     }
 
     public List<User> getAllUsers() {

@@ -1,8 +1,9 @@
-package server;
+package server.discountstrategies;
+
+import server.OrderDetails;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class DiscountStrategyQuantity implements StrategyDiscount {
 

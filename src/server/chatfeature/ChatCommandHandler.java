@@ -1,5 +1,6 @@
-package server;
+package server.chatfeature;
 
+import server.ServerState;
 import server.enums.UserType;
 
 import java.util.List;
@@ -7,10 +8,10 @@ import java.util.stream.Collectors;
 import java.util.Vector;
 
 public class ChatCommandHandler {
-    private final ServerState serverState;
+    private final ServerState SERVER_STATE;
 
     public ChatCommandHandler(ServerState serverState) {
-        this.serverState = serverState;
+        this.SERVER_STATE = serverState;
     }
 
     public void handle(ConnectedClient client, String line) {
@@ -52,9 +53,9 @@ public class ChatCommandHandler {
             } else {
                 client.getOutputStream().println("Only ShiftManager can join an active chat.");
             }
-        } else if (line.equalsIgnoreCase("yes") && serverState.findRequesterFor(client) != null) {
+        } else if (line.equalsIgnoreCase("yes") && SERVER_STATE.findRequesterFor(client) != null) {
             acceptChatRequest(client);
-        } else if (line.equalsIgnoreCase("no") && serverState.findRequesterFor(client) != null) {
+        } else if (line.equalsIgnoreCase("no") && SERVER_STATE.findRequesterFor(client) != null) {
             rejectChatRequest(client);
         } else {
             client.getOutputStream().println("Command not recognized.");
@@ -108,11 +109,11 @@ public class ChatCommandHandler {
         ChatLogger.saveSessionToLog(session);
         Vector<ConnectedClient> membersToEnd = new Vector<>(session.getParticipants());
 
-        serverState.endSession(session);
+        SERVER_STATE.endSession(session);
 
         for (ConnectedClient member : membersToEnd) {
             if (notify && member.getSocket().isConnected()) {
-                member.getOutputStream().println("The chat session has ended. You are now available.");
+                member.getOutputStream().println("The chat session has ended. You are now available. enter 'goodbye' to quit chat mode.");
             }
             member.setAvailable(true);
             member.setCurrentSession(null);
@@ -122,7 +123,7 @@ public class ChatCommandHandler {
     }
 
     private void handleChatRequest(ConnectedClient requester, String targetIdOrName) {
-        ConnectedClient target = serverState.findClientById(targetIdOrName);
+        ConnectedClient target = SERVER_STATE.findClientById(targetIdOrName);
 
         if (target == null || target == requester) {
             requester.getOutputStream().println(target == null ? "Target not found." : "You cannot chat with yourself.");
@@ -135,14 +136,14 @@ public class ChatCommandHandler {
             requester.setPendingRequestTo(target);
             target.getOutputStream().println("Client " + requester.getName() + " wants to chat with you. Reply 'yes' or 'no'.");
         } else {
-            serverState.enqueueClient(target, requester);
-            requester.getOutputStream().println("Client " + target.getName() + " is busy. You have been placed in queue position " + serverState.getQueueSize(target) + ".");
+            SERVER_STATE.enqueueClient(target, requester);
+            requester.getOutputStream().println("Client " + target.getName() + " is busy. You have been placed in queue position " + SERVER_STATE.getQueueSize(target) + ".");
         }
     }
 
 
     private void handleJoinRequest(ConnectedClient manager, String targetIdOrName) {
-        ConnectedClient target = serverState.findClientById(targetIdOrName);
+        ConnectedClient target = SERVER_STATE.findClientById(targetIdOrName);
         ChatSession session = (target != null) ? target.getCurrentSession() : null;
 
         if (session == null) {
@@ -157,7 +158,7 @@ public class ChatCommandHandler {
         session.addParticipant(manager);
         manager.setCurrentSession(session);
         manager.setAvailable(false);
-        serverState.addParticipantToSession(manager, session);
+        SERVER_STATE.addParticipantToSession(manager, session);
 
         String joinMsg = "A manager (" + manager.getName() + ") has joined the chat.";
         manager.getOutputStream().println("You have joined the chat.");
@@ -167,9 +168,7 @@ public class ChatCommandHandler {
     }
 
     private void acceptChatRequest(ConnectedClient replier) {
-        ConnectedClient requester = serverState.findRequesterFor(replier);
-
-
+        ConnectedClient requester = SERVER_STATE.findRequesterFor(replier);
 
         if (requester != null) {
 
@@ -186,16 +185,16 @@ public class ChatCommandHandler {
             replier.setCurrentSession(session);
             replier.setAvailable(false);
 
-            serverState.startSession(session);
+            SERVER_STATE.startSession(session);
 
             String chatStartedMsg = "You are now in a private chat. Use 'goodbye' or 'savechat'.";
-            requester.getOutputStream().println("Chat request accepted. " + chatStartedMsg);
+            requester.getOutputStream().println("Chat request accepted. " + chatStartedMsg + " Press enter to start chatting...");
             replier.getOutputStream().println("You accepted the request. " + chatStartedMsg);
         }
     }
 
     private void rejectChatRequest(ConnectedClient replier) {
-        ConnectedClient requester = serverState.findRequesterFor(replier);
+        ConnectedClient requester = SERVER_STATE.findRequesterFor(replier);
         if (requester != null) {
             requester.getOutputStream().println("Chat request rejected by " + replier.getName());
             requester.setAvailable(true);
@@ -208,8 +207,8 @@ public class ChatCommandHandler {
     }
 
     private void processNextInQueue(ConnectedClient freedClient) {
-        ConnectedClient nextRequester = serverState.dequeueClient(freedClient);
-        if (nextRequester != null && serverState.getAllConnectedClients().contains(nextRequester)) {
+        ConnectedClient nextRequester = SERVER_STATE.dequeueClient(freedClient);
+        if (nextRequester != null && SERVER_STATE.getAllConnectedClients().contains(nextRequester)) {
             freedClient.setAvailable(false);
             nextRequester.setAvailable(false);
             nextRequester.setPendingRequestTo(freedClient);
@@ -239,7 +238,7 @@ public class ChatCommandHandler {
 //    }
 
     private void sendAvailableClients(ConnectedClient requester) {
-        List<ConnectedClient> available = serverState.getAllConnectedClients().stream()
+        List<ConnectedClient> available = SERVER_STATE.getAllConnectedClients().stream()
                 .filter(connectedClient -> connectedClient.isAvailable() && connectedClient != requester)
                 .toList(); // Java 16+ (otherwise use .collect(Collectors.toList()))
 
@@ -278,7 +277,7 @@ public class ChatCommandHandler {
 
     private void sendAllClients(ConnectedClient requester) {
         // --- Active chats ---
-        List<ChatSession> activeChats = serverState.getAllActiveChatSessionsWithoutDuplicates();
+        List<ChatSession> activeChats = SERVER_STATE.getAllActiveChatSessionsWithoutDuplicates();
 
         if (activeChats.isEmpty()) {
             requester.getOutputStream().println("No active chats currently.");

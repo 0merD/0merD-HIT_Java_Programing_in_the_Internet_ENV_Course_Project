@@ -1,5 +1,9 @@
-package server;
+package server.customertypes;
 
+import server.CustomerDiscountsRegistry;
+import server.managers.CustomerManager;
+import server.discountstrategies.DiscountStrategyNoDiscount;
+import server.OrderDetails;
 import server.enums.CustomerTypeEnum;
 
 public abstract class CustomerAbstract {

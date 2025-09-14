@@ -7,7 +7,7 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Date;
 
-public class omerChatClient {
+public class ChatClientFinal {
 
     public static void main(String[] args) {
         Socket socket = null;

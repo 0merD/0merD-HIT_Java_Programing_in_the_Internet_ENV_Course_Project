@@ -1,9 +1,11 @@
 package server;
 
+import server.chatfeature.ChatSession;
+import server.chatfeature.ConnectedClient;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 public class ServerState {
 

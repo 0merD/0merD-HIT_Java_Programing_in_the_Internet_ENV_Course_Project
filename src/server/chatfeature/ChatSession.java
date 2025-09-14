@@ -1,4 +1,4 @@
-package server;
+package server.chatfeature;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

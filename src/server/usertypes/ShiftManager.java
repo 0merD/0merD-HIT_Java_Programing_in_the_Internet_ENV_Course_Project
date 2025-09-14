@@ -1,5 +1,6 @@
-package server;
+package server.usertypes;
 
+import server.User;
 import server.enums.UserType;
 
 public class ShiftManager extends User {

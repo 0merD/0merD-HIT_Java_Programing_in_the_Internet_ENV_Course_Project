@@ -1,18 +1,18 @@
 package server;
 
-import server.enums.CustomerTypeEnum;
+import server.chatfeature.ChatCommandHandler;
+import server.chatfeature.ConnectedClient;
+import server.customertypes.CustomerAbstract;
 import server.enums.OperationTypeEnum;
 import server.enums.UserType;
+import server.managers.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class ClientLoginHandler extends Thread {
@@ -20,6 +20,8 @@ public class ClientLoginHandler extends Thread {
 
     // Note to myself - like Action in C#
     private final Map<OperationTypeEnum, BiConsumer<BufferedReader, PrintWriter>> operationHandlersMap = new EnumMap<>(OperationTypeEnum.class);
+    private static final List<String> CONNECTED_USERS_ID =
+            Collections.synchronizedList(new ArrayList<>());
 
     // Managers:
     CustomerManager customerManager = CustomerManager.getInstance();
@@ -105,7 +107,7 @@ public class ClientLoginHandler extends Thread {
         if (user != null) {
             connectedClient.setUserType(user.getUserType());
             // socketData.setBranchNumber(user.getBranchNumber());
-            String branchName = InventoryManager.getInstance().getBranchCityByNumber(user.getBranchNumber());
+            String branchName = inventoryManager.getBranchCityByNumber(user.getBranchNumber());
             String displayName = user.getUsername() + "@" + (branchName != null ? branchName : "unknown");
             connectedClient.setName(displayName);
         } else {
@@ -146,27 +148,30 @@ public class ClientLoginHandler extends Thread {
     }
 
     private User authenticateClient(BufferedReader input, PrintWriter output) throws IOException {
-        output.println("Enter username:");
-        String username = input.readLine();
+        output.println("Enter user id:");
+        String userId = input.readLine();
         output.println("Enter password:");
         String password = input.readLine();
 
         // Ensure singleton is initialized before static authenticate() call to avoid NPE inside UserManager
         UserManager.getInstance();
 
-        if (!UserManager.authenticate(username, password)) {
+        if (!UserManager.authenticate(userId, password)) {
+
             output.println("Authentication failed.");
             System.out.println("Client authentication failed.");
             return null;
         }
 
-        output.println(String.format("Welcome username: [%s] user type: [%s] Email: [%s]. You are Logged in as %s",
-                username,
-                UserManager.getInstance().getUserByUserName(username).getUserType(),
-                UserManager.getInstance().getUserByUserName(username).getEmail(),
-                UserManager.getInstance().getUserByUserName(username).getUserType()));
+        if (CONNECTED_USERS_ID.contains(userId)) {
+            output.println("Already connected from different machine.");
+            return null;
+        }
 
-        return UserManager.getInstance().getUserByUserName(username);
+        CONNECTED_USERS_ID.add(userId);
+        loggedInUser = UserManager.getInstance().getUserByUserId(userId);
+
+        return loggedInUser;
     }
 
     private OperationTypeEnum selectOperation(BufferedReader input, PrintWriter output, OperationTypeEnum[] allowedOps) throws IOException {
@@ -226,7 +231,7 @@ public class ClientLoginHandler extends Thread {
             output.println("User added successfully.");
 
             // Log success
-            LogAction.logUserAction("Add User",
+            BusinessLogger.logUserAction("Add User",
                     newUser.getUsername(),
                     newUser.getUserType().toString(),
                     "SUCCESS"
@@ -236,13 +241,13 @@ public class ClientLoginHandler extends Thread {
             output.println("Validation error: " + e.getMessage());
 
             // Log failure
-            LogAction.logUserFailure("Add User");
+            BusinessLogger.logUserFailure("Add User");
 
         } catch (IOException e) {
             output.println("Failed to add user: " + e.getMessage());
 
             // Log failure
-            LogAction.logUserFailure("Add User");
+            BusinessLogger.logUserFailure("Add User");
         }
     }
 
@@ -266,7 +271,7 @@ public class ClientLoginHandler extends Thread {
             }
 
             UserManager.getInstance().deleteUser(userToDelete.getUsername());
-            LogAction.logUserAction("Delete User", userToDelete.getUsername(), userToDelete.getUserType().toString(), "SUCCESS");
+            BusinessLogger.logUserAction("Delete User", userToDelete.getUsername(), userToDelete.getUserType().toString(), "SUCCESS");
             output.println("User deleted successfully.");
 
         } catch (IOException e) {
@@ -308,7 +313,6 @@ public class ClientLoginHandler extends Thread {
         output.println("Inventory for branch #" + branchNumber + ":");
 
         // Use the InventoryManager Singleton instance to get the inventory
-        InventoryManager inventoryManager = InventoryManager.getInstance();
         List<InventoryItem> inventory = inventoryManager.getInventoryByCity(branchNumber);
 
         if (inventory.isEmpty()) {
