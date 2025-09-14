@@ -1,0 +1,1 @@
+2025-09-14 13:26:00 | Customer Name: noamseifer | Product Name: server.Product@415941a3 | Quantity: 2 | Succesfull Sale: true | Discount Applied: 3.0 | Final Price: 27.0
