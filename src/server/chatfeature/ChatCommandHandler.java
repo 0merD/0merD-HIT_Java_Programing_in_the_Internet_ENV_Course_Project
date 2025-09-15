@@ -134,10 +134,10 @@ public class ChatCommandHandler {
             requester.setAvailable(false);
             target.setAvailable(false);
             requester.setPendingRequestTo(target);
-            target.getOutputStream().println("Client " + requester.getName() + " wants to chat with you. Reply 'yes' or 'no'.");
+            target.getOutputStream().println("client " + requester.getName() + " wants to chat with you. Reply 'yes' or 'no'.");
         } else {
             SERVER_STATE.enqueueClient(target, requester);
-            requester.getOutputStream().println("Client " + target.getName() + " is busy. You have been placed in queue position " + SERVER_STATE.getQueueSize(target) + ".");
+            requester.getOutputStream().println("client " + target.getName() + " is busy. You have been placed in queue position " + SERVER_STATE.getQueueSize(target) + ".");
         }
     }
 
@@ -213,7 +213,7 @@ public class ChatCommandHandler {
             nextRequester.setAvailable(false);
             nextRequester.setPendingRequestTo(freedClient);
 
-            freedClient.getOutputStream().println("Client " + nextRequester.getName() + " from your queue wants to chat. Reply 'yes' or 'no'.");
+            freedClient.getOutputStream().println("client " + nextRequester.getName() + " from your queue wants to chat. Reply 'yes' or 'no'.");
             nextRequester.getOutputStream().println("Your request is now active. Waiting for " + freedClient.getName() + " to respond.");
         } else {
             // No queued requester; ensure freed client is available

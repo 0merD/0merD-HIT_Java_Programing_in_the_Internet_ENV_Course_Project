@@ -11,7 +11,6 @@ public class Server {
     private static final int APP_PORT = 1234;
     private static boolean isServerRunning = true;
 
-    //Todo: find a way to remove this line.
     private static UserManager userManagerSingletonInstance = UserManager.getInstance(); // initializes the UserManager singleton Instance.
 
     public static void main(String[] args) throws IOException {
@@ -24,7 +23,7 @@ public class Server {
             while (isServerRunning) {
                 final Socket socket = serverSocket.accept(); // blocking
                 System.out.printf("Accepted connection from [%s]%n", socket.getInetAddress());
-                new ClientLoginHandler(socket, serverState).start();
+                new ClientSessionHandler(socket, serverState).start();
             }
         }
     }
