@@ -11,7 +11,6 @@ public class ProductsManager {
     private ProductsDataProvider dataProvider;
 
 
-    //Todo: make sure relevant methods are added a lock
     public ProductsManager(ProductsDataProvider dataProvider) {
         this.dataProvider = dataProvider;
     }

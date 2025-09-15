@@ -71,22 +71,22 @@ public class UserManager {
         }
     }
 
-    public boolean deleteUser(String username) throws IllegalArgumentException, IOException {
-        if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Invalid username.");
+    public boolean deleteUser(String userid) throws IllegalArgumentException, IOException {
+        if (userid == null || userid.isEmpty()) {
+            throw new IllegalArgumentException("Invalid userid.");
         }
 
         synchronized (lockUsersFile) {
-            User removed = users.remove(username);
+            User removed = users.remove(userid);
             if (removed == null) {
-                throw new IllegalArgumentException("User with username '" + username + "' does not exist.");
+                throw new IllegalArgumentException("User with id '" + userid + "' does not exist.");
             }
 
             try {
                 saveUsersToJson(); // persist the change
                 return true;
             } catch (IOException e) {
-                users.put(username, removed); // rollback
+                users.put(userid, removed); // rollback
                 throw new IOException("Failed to save users to JSON.", e);
             }
         }

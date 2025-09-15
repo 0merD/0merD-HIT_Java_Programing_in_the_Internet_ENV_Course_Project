@@ -15,7 +15,12 @@ import java.net.Socket;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class ClientLoginHandler extends Thread {
+import static server.ValidationsService.validateId;
+/**
+This class handles the client session interactions. It is functionally the main logic class for most client actions.
+ each Manager used by this class is a singleton instance.
+*/
+public class ClientSessionHandler extends Thread {
     private final Socket socket;
 
     // Note to myself - like Action in C#
@@ -36,7 +41,7 @@ public class ClientLoginHandler extends Thread {
     private User loggedInUser;
 
 
-    public ClientLoginHandler(Socket socket, ServerState serverState) {
+    public ClientSessionHandler(Socket socket, ServerState serverState) {
         this.socket = socket;
         this.serverState = serverState;
         this.chatCommandHandler = new ChatCommandHandler(serverState);
@@ -254,37 +259,34 @@ public class ClientLoginHandler extends Thread {
 
     private void handleDeleteUser(BufferedReader input, PrintWriter output) {
         try {
-            output.println("Enter username of the user to delete:");
+            output.println("Enter user id of the user to delete:");
 
-            String username;
-            try {
-                username = ValidationsService.validateUsername(input.readLine());
+            String id = input.readLine();
+            User userToDelete = UserManager.getInstance().getUserByUserId(id);
+            UserManager.getInstance().deleteUser(userToDelete.getId());
+            BusinessLogger.logUserAction("Delete User", userToDelete.getUsername(), userToDelete.getUserType().toString(), "SUCCESS");
+            output.println("User deleted successfully.");
             } catch (IllegalArgumentException e) {
                 output.println("Validation error: " + e.getMessage());
                 return;
-            }
-
-            User userToDelete = UserManager.getInstance().getUserByUserName(username);
-            if (userToDelete == null) {
-                output.println("User not found.");
-                return;
-            }
-
-            UserManager.getInstance().deleteUser(userToDelete.getUsername());
-            BusinessLogger.logUserAction("Delete User", userToDelete.getUsername(), userToDelete.getUserType().toString(), "SUCCESS");
-            output.println("User deleted successfully.");
-
-        } catch (IOException e) {
-            output.println("Failed to delete user: " + e.getMessage());
+            } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
+
+
+
+
     }
 
     private void handleModifyUserRole(BufferedReader input, PrintWriter output) {
-        //Todo: implement validations.
         try {
-            output.println("Enter the username of the user to modify:");
-            String username = input.readLine();
-
+            output.println("Enter the user ID f the user to modify:");
+            String id = input.readLine();
+            User user_to_modify=UserManager.getInstance().getUserByUserId(id);
+            if (user_to_modify==null) {
+                output.println("User not found.");
+                return;
+            }
             output.println("Enter new user type (admin/shiftmanager/basicworker) - case insensitive:");
             String roleStr = input.readLine().trim().toLowerCase();
 
@@ -295,7 +297,7 @@ public class ClientLoginHandler extends Thread {
                 return;
             }
 
-            boolean success = UserManager.getInstance().modifyUserRole(username, newRole);
+            boolean success = UserManager.getInstance().modifyUserRole(id, newRole);
             if (success) {
                 output.println("User role updated successfully.");
             }

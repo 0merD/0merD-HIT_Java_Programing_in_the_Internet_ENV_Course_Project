@@ -33,21 +33,5 @@ public class Product {
         return productIdentifier;
     }
 
-    //Todo: verify with Roy this is ok.
-//    public void setProductStringIdentifier(String productStringIdentifier) {
-//        this.productStringIdentifier = productStringIdentifier;
-//    }
-//
-//    public void setPrice(double price) {
-//        this.price = price;
-//    }
-//
-//
-//    public void setDescription(String description) {
-//        this.description = description;
-//    }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
+
 }
